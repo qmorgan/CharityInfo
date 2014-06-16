@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    	<meta http-equiv"content-type"="" content="text/html" ;="" charset="uft-8">
+    	<title>Charity Informer</title>
+    	<!-- jquery must be the first script -->
+    	<script src="{{ url_for('static', filename='jquery.js') }}"></script> 
+    	<!-- Bootstrap  -->
+        <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheetmain.css') }}" media="screen">
+    	<script src="{{ url_for('static', filename='bootstrap-carousel.js') }}"></script>
+        <!-- <link rel="shortcut icon" href="http://qmorgan.com/favicon.ico"> -->
+    	
+    </head>
+    <!-- end head -->
+    <body>
+    	<div class="canvas">
+
+			<!-- header -->
+			<header id="mainHeader" class="navbar-fixed-top" role="banner" style="overflow: hidden; display: block; height: 33px;">
+				<div class="container">
+					<nav class="navbar navbar-default scrollMenu" role="navigation">
+						<div class="navbar-header">
+							<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+							<ul class="nav navbar-nav">
+							    <li><a href="./search" style="padding-top: 6px;padding-left: 15px; ">Charity Informer</a></li>
+						    </ul>
+						</div>
+						<div class="collapse navbar-collapse navbar-ex1-collapse" id="scrollTarget">
+							<ul class="nav navbar-nav pull-right">
+								<li><a href="./search" style="padding-top: 6px;">Search</a> </li>
+								<li><a href="./search" style="padding-top: 6px;">About</a> </li>
+								<li><a href="./search" style="padding-top: 6px;">Methodology</a> </li>
+							</ul>
+						</div>
+					</nav>
+				</div>
+			</header>
+    		<div class="sitewrapper">
+                <div id="pagewrapper">
+                	<div class="contentwrapper">
+                        {% block body %}{% endblock %}
+                	<!--end contentwrapper-->
+
+                </div>
+                <!--end pagewrapper-->
+            
+    		</div>
+    		<!--end sitewrapper-->
+
+    	</div> 
+    	<!--end canvas-->
+
+		<div id="footer">
+					<div class="footerwrapper">
+						<div class="footerheading">
+							<ul class="footergrid">
+								<ul class="footerlist"><h2>Navigation</h2>
+									<a href="./search"><li>Home</li></a>
+									<a href="./search"><li>About</li></a>
+									<a href="./search"><li>Methodology</li></a>
+								</ul>
+
+
+								<ul class="contactinfo"><h2>Contact</h2>
+									<a href="mailto:qmorgan@gmail.com"><li>qmorgan@gmail.com</li></a>
+									<a href="http://www.linkedin.com/in/qmorgan"><li>LinkedIn/in/qmorgan</li></a>
+									<a href="https://twitter.com/qmorgan"><li>twitter.com/qmorgan</li></a>
+									<a href="http://www.google.com/"><li style="visibility:hidden;">Extra</li></a>
+
+								</ul>
+							</ul>
+
+						</div>
+					
+					</div>	
+		</div> 
+		<!--end footer-->
+
+
+    </body>
+    <!-- end body -->
+    
