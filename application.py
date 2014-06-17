@@ -46,7 +46,6 @@ except:
 @app.route("/")
 def index():
     # right now just force them to go to search
-    return "Hello world!"
     return redirect(url_for('search'))
 
 
