@@ -112,7 +112,7 @@ h2 {
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
-	min-width: 640px;
+	min-width: 800px;
 }
 
 .topnav {
@@ -336,7 +336,7 @@ h2 {
 	margin-right: auto;
 	margin-left: auto;
 	height: auto;
-	width: 640px;
+	width: 800px;
 }
 
 
@@ -398,7 +398,7 @@ h2 {
 	margin-right: auto;
 	margin-left: auto;
 	height: 140px;
-	width: 640px;
+	width: 800px;
 }
 
 
@@ -481,7 +481,7 @@ ul.footerlist li:hover {
 .carousel-inner > .item {
   display: none;
   position: relative;
-  height: 480px;
+  height: 600px;
   -webkit-transition: 0.6s ease-in-out left;
   transition: 0.6s ease-in-out left;
 }
