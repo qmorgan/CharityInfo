@@ -46,7 +46,7 @@ except:
 @app.route("/")
 def index():
     # right now just force them to go to search
-    return os.environ.get("MYSQL_PASS")
+    return os.environ.get("PATH")
     return redirect(url_for('search'))
 
 
