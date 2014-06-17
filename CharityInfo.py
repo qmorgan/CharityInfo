@@ -1,11 +1,9 @@
 import os, datetime, re, glob,sys
 from flask import Flask, request, redirect, url_for, render_template, redirect, url_for, flash
 from werkzeug import secure_filename
-from pybtex.database.input import bibtex
 # from flask_sqlalchemy import SQLAlchemy
 from flask.ext.sqlalchemy import SQLAlchemy
 import sqlite3
-from StringIO import StringIO
 from os.path import exists
 
 
@@ -181,7 +179,7 @@ def search():
             except Exception, e:    
                  txt = """
                         <p></p>
-                        <p>Your search was: <b>'{query}'</b></p>. Unfortunately
+                        <p>Your search was: <b>'{query}'.</b></p> Unfortunately
                         <p> The search failed! The error was:</p>
                         <p>{error}</p>
                         <p>To search again, click 
@@ -194,9 +192,10 @@ def search():
         # If the user doesn't submit a query
         else:
             txt = """
-                <p></p>
-                <p>No search term was specified. Please 
-                submit a well-formed query<a href='{}'>here</a></p>""".format(url_for("search"))
+                <p><br></p>
+                
+                <p>No search term was specified. </p>
+                <p>Please submit a well-formed query <a href='{}'>here</a></p>""".format(url_for("search"))
 
         return render_template("search.html", txt = txt)
     else:
@@ -214,6 +213,15 @@ def search():
 def search_parse(query):
     print "searching {}".format(query)
     # query_template = "SELECT * FROM charitynavigator WHERE CHARITYNAME LIKE '%%{}%%'".format(query)
+    if "'" in query:
+        raise Exception("The characters ', are not allowed ")
+        
+    # t = text("""SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
+    #       FROM cn_oob_1 as ob
+    #       JOIN charitynavigator as cn
+    #       ON cn.CN_ID = ob.CN_ID
+    #       WHERE cn.CHARITYNAME LIKE '\:username'
+    #       """).bindparams(query=query)
     query_template = """
     SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
     	FROM cn_oob_1 as ob
