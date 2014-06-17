@@ -46,6 +46,7 @@ db.create_all()
 @app.route("/")
 def index():
     # right now just force them to go to search
+    return "Hello world!"
     return redirect(url_for('search'))
 
 
@@ -240,4 +241,4 @@ def search_parse(query):
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    # app.run(port=5000)
