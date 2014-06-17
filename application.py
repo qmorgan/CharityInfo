@@ -48,7 +48,7 @@ def index():
     # right now just force them to go to search
     try:
         passwd = os.environ.get("MYSQL_PASS")
-    else:
+    except:
         passwd = "Unknown"
     return passwd
     return redirect(url_for('search'))
