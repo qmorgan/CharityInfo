@@ -9,9 +9,6 @@ from os.path import exists
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-UPLOAD_FOLDER = '.'
-ALLOWED_EXTENSIONS = set(['bib'])
-
 application = Flask(__name__) #update 
 app = application
 app.debug = True
@@ -23,26 +20,28 @@ app.debug = True
 # else:
 #     db_path = 'sqlite:///' + os.path.join(basedir, 'app.db')
 
-import os
-import sys
-if not os.environ.has_key("MYSQL_PASS"):
-    print "You need to set the environment variable  to"
-    print "point to your gmail password"
-    sys.exit(1)
-else: 
-    passwd = os.environ.get("MYSQL_PASS")
+try:
+    import os
+    import sys
+    if not os.environ.has_key("MYSQL_PASS"):
+        print "You need to set the environment variable  to"
+        print "point to your gmail password"
+        sys.exit(1)
+    else: 
+        passwd = os.environ.get("MYSQL_PASS")
 
  
-db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_path
-db = SQLAlchemy(app)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+    db = SQLAlchemy(app)
 
-app.config.from_object(__name__)
+    app.config.from_object(__name__)
 
-# db.create_all()
-db.create_all()
-
+    # db.create_all()
+    db.create_all()
+except:
+    pass
 
 @app.route("/")
 def index():
