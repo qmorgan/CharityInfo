@@ -17,12 +17,24 @@ ALLOWED_EXTENSIONS = set(['bib'])
 app = Flask(__name__)
 app.debug = True
 
-dbglob = glob.glob('*.db')
+# dbglob = glob.glob('*.db')
+# 
+# if dbglob: # taking advantage of the 'Falseness' of empty lists
+#     db_path = 'sqlite:///' + os.path.join(basedir, dbglob[0])
+# else:
+#     db_path = 'sqlite:///' + os.path.join(basedir, 'app.db')
 
-if dbglob: # taking advantage of the 'Falseness' of empty lists
-    db_path = 'sqlite:///' + os.path.join(basedir, dbglob[0])
-else:
-    db_path = 'sqlite:///' + os.path.join(basedir, 'app.db')
+import os
+import sys
+if not os.environ.has_key("MYSQL_PASS"):
+    print "You need to set the environment variable  to"
+    print "point to your gmail password"
+    sys.exit(1)
+else: 
+    passwd = os.environ.get("MYSQL_PASS")
+
+ 
+db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 db = SQLAlchemy(app)
@@ -31,6 +43,7 @@ app.config.from_object(__name__)
 
 # db.create_all()
 db.create_all()
+
 
 @app.route("/")
 def index():
@@ -92,26 +105,33 @@ def search():
                       			        <div id="charitypictures">
 
                                             <li> 
-                                            <p> <b>Name:</b> {c_name} </p> 
                                             <p> <b>Class:</b> {c_class} </p>
-                                            <h3 style="color:{colorstr2}"> Actual Rating: {c_value} </h3>
-                                            <h3 style="color:{colorstr}"> <i> Predicted Rating: {c_predict:.2f} </i></h3>
+                                            <h3 style="color:{colorstr}"> Predicted Rating: {c_predict:.2f} / 70</h3>
+                                            <p style="color:{colorstr2}"> <i>Actual Rating: {c_value} / 70</i></p>
+                                            <br>
+                                            
                                             </li>
-
+                                            <img src="http://i.imgur.com/xPg7jZD.png" width="580px" style="position:absolute;z-index:-1"></img>
                       					</div><!-- end charity pictures -->
                                         <div class="carousel-caption">Overview
                                         </div>
                                       </div>
                                      """.format(CN_ID = str(result['CN_ID']),
-                                                c_name = str(result['CHARITYNAME']),
                                                 c_class = str(result['CHARITYCLASS']),
-                                                c_value = str(result['OVERALL_VALUE']),colorstr2 = colorstr2,
-                                                colorstr = colorstr,
-                                                c_predict = result['OOB_Score'])
+                                                colorstr = colorstr, c_predict=result['OOB_SCORE'],
+                                                c_value = str(result['OVERALL_VALUE']),colorstr2 = '#dddddd')#,
+                                     #           c_predict = result['OOB_Score'])
+                                     # <p> This is higher than <b>XX.X%</b> of all ranked charities of its class</p> 
+                                     
                     result_txt += """<div class="item">
                         			        <div id="charitypictures">
 
-                                              slide2
+                                              <h3 style="color:#8c92ac">Similar charities with higher rankings include:</h3><br><br>
+                                              <li>My Incredible Charity: 67.3 / 70</li><br>
+                                              <li>A Pretty Great Charity: 64.5 / 70</li><br>
+                                              <li>Still Good Charity: 62.2 / 70</li><br>
+                                              <li>Yet Another Charity: 62.0 / 70</li><br><br>
+                                              <li><i>Each of these will link to my results for the charity</i><br>
 
                         					</div><!-- end charity pictures --> 
                         					<div class="carousel-caption">Comparison
@@ -119,11 +139,13 @@ def search():
                                       </div>
                                       <div class="item">
                         			        <div id="charitypictures">
-
-                                              Slide3
+                                            <p>SAMPLE Summary table (will make it nice with CSS)</p>
+                                              <img src="http://i.imgur.com/jghRFbd.png" style="position:absolute;z-index:-1" width="580px"></img>
+                                              
+                                              
 
                         					</div><!-- end charity pictures -->                                     
-                        					<div class="carousel-caption">Similar Charities
+                        					<div class="carousel-caption">Tables
                         					</div>
                                       </div>
                                    </div>
@@ -150,7 +172,7 @@ def search():
                     txt = """
                         <p></p>
                         <p>Your search for: <b>'{query}'</b> returned {lenresults} results:</p>
-                        <p>The results are: {result}</ul></p>
+                        <p>{result}</ul></p>
                         <p style="text-align:center"><a href="{search}">Search Again
                                                     </a></p>""".format(query = query, lenresults=count,
                                                             result = result_txt,
@@ -190,14 +212,24 @@ def search():
         return render_template("search.html", txt = txt)
 
 def search_parse(query):
-    query_template = "select * from cnavigator_oob WHERE CHARITYNAME LIKE '%{}%'".format(query)
+    print "searching {}".format(query)
+    # query_template = "SELECT * FROM charitynavigator WHERE CHARITYNAME LIKE '%%{}%%'".format(query)
+    query_template = """
+    SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
+    	FROM cn_oob_1 as ob
+    	JOIN charitynavigator as cn
+    	ON cn.CN_ID = ob.CN_ID
+    	WHERE cn.CHARITYNAME LIKE '%%{}%%'
+    """.format(query)
+    print query_template
     eng = db.create_engine(db_path)
     results = eng.execute(query_template)
-    print 'searchiiiiin'
+    print 'search complete'
+    print results
     return results
     #for result in results:
     #    print result
 
 
 if __name__ == "__main__":
-    app.run(port=8080)
+    app.run(port=5000)
