@@ -1,16 +1,9 @@
 /* GENERAL */
 
+
 a {
 	text-decoration: none;
-	font-variant: small-caps;
-	font-family:  helvetica, sans-serif;
-    color:#E7573C;
 }	
-
-a:hover {
-	color: #a03b2b;
-}
-
 
 
 ul {
@@ -45,6 +38,10 @@ h2 {
 /* MAIN MENU 
 ================================================== */
 
+.navbar-nav {
+margin:0px
+}
+
 #mainHeader{
     background-color: white;
 	-webkit-box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
@@ -64,6 +61,10 @@ h2 {
 	color:#fff;
 }
 
+
+.navbar-default .navbar-nav > li > a {
+    color:#E7573C
+}
 
 /* MAIN MENU
 ================================================== */
@@ -89,10 +90,11 @@ h2 {
 /* END MAIN MENU 
 ================================================== */
 .searchbox {
-padding-top:200px;
 width:300px;
 margin-left:auto; 
 margin-right:auto;
+margin-top:300px;
+margin-bottom:300px;
 }
 
 
@@ -339,6 +341,12 @@ margin-right:auto;
     padding: 30px;
     padding-bottom: 30px;
 }
+
+#pagewrapper a{	
+    font-variant: small-caps;
+	font-family:  helvetica, sans-serif;
+    color:#E7573C;
+    }
 
 .contentwrapper {
 	margin-right: auto;
