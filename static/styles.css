@@ -2,13 +2,15 @@
 
 a {
 	text-decoration: none;
+	font-variant: small-caps;
+	font-family:  helvetica, sans-serif;
+    color:#E7573C;
 }	
 
+a:hover {
+	color: #a03b2b;
+}
 
-p.notify a:link              { color:#c4c4c4; }
-p.notify a:visited              { color:#c4c4c4; }
-p.notify a:hover              { color:#3697ff; }
-p.notify a:active              { color:#c4c4c4;}
 
 
 ul {
@@ -27,6 +29,7 @@ body {
 	margin: 0;
 	padding: 0;
 	padding-top: 0px;
+    background: #E7573C;
 }
 
 h2 {
@@ -85,7 +88,12 @@ h2 {
 
 /* END MAIN MENU 
 ================================================== */
-.searchbox {padding-top:200px;}
+.searchbox {
+padding-top:200px;
+width:300px;
+margin-left:auto; 
+margin-right:auto;
+}
 
 
 
@@ -152,7 +160,7 @@ h2 {
 }
 
 .topnav-items a.active {
-	color: #6da4e3;
+	color: #E7573C;
 	font-family: "helvetica neue", helvetica, sans-serif;
 	font-weight: 800;
 }
@@ -329,7 +337,7 @@ h2 {
 #pagewrapper {
 	height: auto;
     padding: 30px;
-    padding-bottom: 230px;
+    padding-bottom: 30px;
 }
 
 .contentwrapper {
@@ -345,12 +353,12 @@ h2 {
 	display: block;
 	width: 440px;
 	margin-top: 10px;
-	height: 3px;
+	height: 0px;
 	background: #FF8080;
 }
 
 #charityname {
-	text-align: left;
+	text-align: center;
 	margin-left: 100px;
     margin-right: 100px;
 
@@ -358,7 +366,7 @@ h2 {
 
 #charitypictures {
 	margin-left: 112px;
-	margin-top: 40px;
+	margin-top: 20px;
 	position: absolute;
 	z-index: 108;
 }
@@ -472,6 +480,18 @@ ul.footerlist li:hover {
 
 .carousel {
   position: relative;
+  margin-bottom: 50px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	border-radius: 8px;
+	-moz-box-shadow: rgba(255,255,255,.28) 0px 1px 1px, inset rgba(0,0,0,.5) 0 1px 4px;
+	-webkit-box-shadow: rgba(255,255,255,.28) 0px 1px 1px, inset rgba(0,0,0,.5) 0 1px 4px;
+	box-shadow: rgba(255,255,255,.28) 0px 1px 1px, inset rgba(0,0,0,.5) 0 1px 4px;
+
+	-moz-background-clip: padding-box;
+	-webkit-background-clip: padding-box;
+	background-clip: padding-box;
+
 }
 .carousel-inner {
   position: relative;

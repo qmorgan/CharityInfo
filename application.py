@@ -13,13 +13,6 @@ application = Flask(__name__) #update
 app = application
 app.debug = True
 
-# dbglob = glob.glob('*.db')
-# 
-# if dbglob: # taking advantage of the 'Falseness' of empty lists
-#     db_path = 'sqlite:///' + os.path.join(basedir, dbglob[0])
-# else:
-#     db_path = 'sqlite:///' + os.path.join(basedir, 'app.db')
-
 try:
     import os
     import sys
@@ -74,13 +67,13 @@ def search():
                 # try to search
                 results = search_parse(query)
                 print 'search done'
-                result_txt = "<ul>"
+                result_txt = "<ul style='padding-left: 0px;'>"
                 count = 0
                 # loop through results and post box
                 for result in results:
                     count += 1
                     result_txt += '''
-                    <header class="bridgetitle" id="charityname" style="padding-top: 50px;padding-bottom: 10px;">{c_name}</header>
+                    <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
                     '''.format(c_name = str(result['CHARITYNAME']))
                     # if result['OOB_Score'] > 55.0:
                     #     colorstr = "#B1CC9F"
@@ -115,9 +108,8 @@ def search():
 
                                             <li> 
                                             <p> <b>Class:</b> {c_class} </p>
-                                            <h3 style="color:{colorstr}"> Predicted Rating: {c_predict:.2f} / 70</h3>
+                                            <h3 style="color:{colorstr};margin-top: 10px;"> Predicted Rating: {c_predict:.2f} / 70</h3>
                                             <p style="color:{colorstr2}"> <i>Actual Rating: {c_value} / 70</i></p>
-                                            <br>
                                             
                                             </li>
                                             <img src="http://i.imgur.com/xPg7jZD.png" width="580px" style="position:absolute;z-index:-1"></img>
@@ -166,7 +158,7 @@ def search():
                                 </div>
                                 
                                 """.format(res_num=count)
-                # looking for empty result lists
+                # looking for empty result lists. 
                 if result_txt == "<ul>":
                     txt = """
                         <p></p>
@@ -175,18 +167,17 @@ def search():
                         <p style="text-align:center"><a href="{search}">Search Again
                                                     </a></p>""".format(query = query,
                                                             search = url_for('search'))
-                # for non-empty result lists
+                # For non-empty result lists
                 else: 
-                    print 'FOUND SOMETHING'
                     txt = """
                         <p></p>
-                        <p>Your search for: <b>'{query}'</b> returned {lenresults} results:</p>
+                        <p style="color:#ccc">Your search for: <b>'{query}'</b> returned {lenresults} results:</p>
                         <p>{result}</ul></p>
                         <p style="text-align:center"><a href="{search}">Search Again
                                                     </a></p>""".format(query = query, lenresults=count,
                                                             result = result_txt,
                                                             search = url_for('search'))
-                 # the SQL search fails
+                 # if the SQL search fails
             except Exception, e:    
                  txt = """
                         <p></p>
@@ -214,8 +205,8 @@ def search():
         <div class="searchbox">
             <form action="search" method="POST">
                 <searchfield>
-                <p style="padding-left:34%; "><input style="width:50%;text-align: center;" type="text"  name="query" placeholder="Charity Name"/></p>
-                <p style="padding-left:44.8%; "><input style="height:30px;text-align: center;"type="submit" class="button"/></p>
+                <p><input style="width:100%;text-align: center;" type="text"  name="query" placeholder="Charity Name"/></p>
+                <p><input style="width:100%;height:30px;text-align: center;"type="submit" class="button"/></p>
                 </searchfield>
             </form>
         </div>"""
