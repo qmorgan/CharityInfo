@@ -24,14 +24,20 @@ try:
     import os
     import sys
     if not os.environ.has_key("MYSQL_PASS"):
-        print "You need to set the environment variable  to"
-        print "point to your gmail password"
+        print "You need to set the environment variable MYSQL_PASS to"
+        print "point to your mysql password"
         sys.exit(1)
+    elif not os.environ.has_key("RDS_HOST"):
+        print "You need to set the environment variable RDS_HOST to"
+        print "point to your amazon RDS host" 
     else: 
         passwd = os.environ.get("MYSQL_PASS")
-
- 
+        rdshost=os.environ.get("RDS_HOST")
+    
+    # local
     db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    # aws
+    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db = SQLAlchemy(app)
@@ -41,7 +47,7 @@ try:
     # db.create_all()
     db.create_all()
 except:
-    pass
+    print "Cannot connect!"
 
 @app.route("/")
 def index():
@@ -50,7 +56,7 @@ def index():
         passwd = os.environ.get("MYSQL_PASS")
     except:
         passwd = "Unknown"
-    return passwd
+    # return passwd
     return redirect(url_for('search'))
 
 
@@ -122,7 +128,7 @@ def search():
                                      """.format(CN_ID = str(result['CN_ID']),
                                                 c_class = str(result['CHARITYCLASS']),
                                                 colorstr = colorstr, c_predict=result['OOB_SCORE'],
-                                                c_value = str(result['OVERALL_VALUE']),colorstr2 = '#dddddd')#,
+                                                c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
                                      #           c_predict = result['OOB_Score'])
                                      # <p> This is higher than <b>XX.X%</b> of all ranked charities of its class</p> 
                                      
