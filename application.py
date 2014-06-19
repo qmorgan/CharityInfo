@@ -5,7 +5,7 @@ from werkzeug import secure_filename
 from flask.ext.sqlalchemy import SQLAlchemy
 import sqlite3
 from os.path import exists
-
+import codecs
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -30,7 +30,7 @@ try:
     # local
     db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
     # aws
-    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db = SQLAlchemy(app)
@@ -67,11 +67,16 @@ def search():
                 # try to search
                 results = search_parse(query)
                 print 'search done'
+                totalcount = int(results.rowcount)
+                print 'Found %i items' % (totalcount)
                 result_txt = "<ul style='padding-left: 0px;'>"
                 count = 0
+                countlimit=30
                 # loop through results and post box
                 for result in results:
                     count += 1
+                    if count >= countlimit: # only print the first 30
+                        break
                     result_txt += '''
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
                     '''.format(c_name = str(result['CHARITYNAME']))
@@ -159,7 +164,7 @@ def search():
                                 
                                 """.format(res_num=count)
                 # looking for empty result lists. 
-                if result_txt == "<ul>":
+                if totalcount == 0:
                     txt = """
                         <p></p>
                         <p>You searched for: <b>'{query}'</b></p>
@@ -169,13 +174,19 @@ def search():
                                                             search = url_for('search'))
                 # For non-empty result lists
                 else: 
+                    print "found {lenresults} items".format(lenresults=count)
+                    if count < totalcount:
+                        count_limit_string = ". Showing the first {0}".format(count)
+                    else:
+                        count_limit_string = ""
                     txt = """
                         <p></p>
-                        <p style="color:#ccc">Your search for: <b>'{query}'</b> returned {lenresults} results:</p>
+                        <p style="color:#ccc">Your search for: <b>'{query}'</b> returned {lenresults} results{cstr}:</p>
                         <p>{result}</ul></p>
                         <p style="text-align:center"><a href="{search}">Search Again
-                                                    </a></p>""".format(query = query, lenresults=count,
-                                                            result = result_txt,
+                                                    </a></p>""".format(query = query, lenresults=totalcount, 
+                                                            cstr=count_limit_string,
+                                                            result = result_txt.decode('utf-8'),
                                                             search = url_for('search'))
                  # if the SQL search fails
             except Exception, e:    
@@ -198,10 +209,15 @@ def search():
                 
                 <p>No search term was specified. </p>
                 <p>Please submit a well-formed query <a href='{}'>here</a></p>""".format(url_for("search"))
-
-        return render_template("search.html", txt = txt)
+        print "attempting to render template"
+        return render_template("search.html", txt=unicode(txt.strip(codecs.BOM_UTF8), 'utf-8'))
     else:
         txt = """
+        <div class="titlebox">
+            <h1 style="color:#E7573C;"> Charity<b>Verity</b> </h1>
+            <p style="text-transform:none; font-variant:small-caps;">predicting charity ratings to guide effective altruism
+            </p>
+        </div>
         <div class="searchbox">
             <form action="search" method="POST">
                 <searchfield>
@@ -239,8 +255,11 @@ def search_parse(query):
     return results
     #for result in results:
     #    print result
-
+    
+    ## Check if unicode in table with regex: LIKE '%[^a-zA-Z0-9]%'
 
 if __name__ == "__main__":
     app.run(port=5000)
-    
+
+
+

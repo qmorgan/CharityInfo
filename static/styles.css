@@ -25,6 +25,11 @@ body {
     background: #E7573C;
 }
 
+h1 {
+    font-family:  "helvetica", sans-serif;
+	text-transform: uppercase;
+}
+
 h2 {
 	margin: 0px;
 	color: white;
@@ -95,8 +100,15 @@ margin:0px
     width:300px;
     margin-left:auto; 
     margin-right:auto;
-    margin-top:65px;
+    margin-top:55px;
     margin-bottom:65px;
+    }
+    .titlebox {
+    text-align:center;
+    text-transform:uppercase;
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:10px;
     }
 }
 @media screen and (min-height: 400px){
@@ -104,8 +116,14 @@ margin:0px
     width:300px;
     margin-left:auto; 
     margin-right:auto;
-    margin-top:165px;
+    margin-top:65px;
     margin-bottom:165px;
+    }
+    .titlebox {
+    text-align:center;
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:100px;
     }
 }
 @media screen and (min-height: 600px){
@@ -113,8 +131,15 @@ margin:0px
     width:300px;
     margin-left:auto; 
     margin-right:auto;
-    margin-top:265px;
+    margin-top:165px;
     margin-bottom:265px;
+    }
+    .titlebox {
+    text-align:center;
+    text-transform:uppercase;
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:100px;
     }
 }
 @media screen and (min-height: 800px){
@@ -122,17 +147,32 @@ margin:0px
     width:300px;
     margin-left:auto; 
     margin-right:auto;
-    margin-top:365px;
+    margin-top:265px;
     margin-bottom:365px;
     }
+    .titlebox {
+    text-align:center;
+    text-transform:uppercase;
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:100px;
+    }
+    
 }
 @media screen and (min-height: 1000px){
     .searchbox {
     width:300px;
     margin-left:auto; 
     margin-right:auto;
-    margin-top:465px;
+    margin-top:365px;
     margin-bottom:465px;
+    }
+    .titlebox {
+    text-align:center;
+    text-transform:uppercase;
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:100px;
     }
 }
 @media screen and (min-height: 1200px){
@@ -142,6 +182,13 @@ margin:0px
     margin-right:auto;
     margin-top:565px;
     margin-bottom:565px;
+    }
+    .titlebox {
+    text-align:center;
+    text-transform:uppercase;
+    margin-left:auto; 
+    margin-right:auto;
+    margin-top:100px;
     }
 }
 
