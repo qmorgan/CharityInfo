@@ -7,6 +7,7 @@ import sqlite3
 from os.path import exists
 import codecs
 
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 application = Flask(__name__) #update 
@@ -36,6 +37,7 @@ try:
     db = SQLAlchemy(app)
 
     app.config.from_object(__name__)
+
 
     # db.create_all()
     db.create_all()
@@ -81,6 +83,8 @@ def search():
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
                     '''.format(c_name = str(result['NAME']).title())
                     
+                    predicted_score = result['CN_SCORE_PREDICT']
+                    
                     cn_rating_exists = False
                     cn_id = -1
                     ein=result['EIN']
@@ -91,11 +95,26 @@ def search():
                         cn_rating_str = "{} / 70".format(cn_rating)
                         cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cn_id)
                         c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
+                        # change predicted score to out-of-bag estimate so it is not biased
+                        predicted_score = res['OOB_SCORE']
                     if cn_id == -1:
                         cn_rating_str = "Not Available"
                         cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.profile&ein={}".format(ein)
                         c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
 
+
+                    
+                    categoryres = get_category(ein)
+                    c_class = 'UNKNOWN'
+                    for res in categoryres:
+                        c_class = res['NTEECAT12']
+                    
+                
+                    c_class_str = translate_nteecode(c_class)
+                    
+                    percentile = 0.0
+                    percentile = get_percentile(c_class,predicted_score)
+                    
                     
                     colorstr = "#8c92ac"
                     colorstr2 = "#8c92ac"
@@ -116,17 +135,18 @@ def search():
 
                                             <li> 
                                             <p> <b>Class:</b> {c_class} </p>
-                                            <h3 style="margin-top: 10px;"> Predicted Charity Navigator Rating: {c_predict:.2f} / 70</h3>
-                                            """.format(c_class='class',c_predict=result['CN_SCORE_PREDICT'])
-                    result_txt += """       <p style="color:{colorstr2}"> <i>Actual Charity Navigator Rating: {c_value} </i></p>""".format(colorstr2 = '#888888',c_value=c_value)
+                                            <h3 style="margin-top: 10px;"> Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70</h3>
+                                            """.format(c_class=c_class_str,c_predict=predicted_score)
+                    result_txt += """       <p style="color:{colorstr2}"> <i>Actual CharityNavigator.org Rating: {c_value} </i></p>""".format(colorstr2 = '#888888',c_value=c_value)
+                    result_txt += """       <p style="color:{colorstr2}"> <i>This charity is predicted to be ranked higher than {perc:.1f}% of the charities in its class.</i></p>""".format(colorstr2 = '#888888',perc=percentile)
                     result_txt += """          
                                             </li>
-                                            <img src="http://i.imgur.com/xPg7jZD.png" width="580px" style="position:absolute;z-index:-1"></img>
+                                            <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>
                       					</div><!-- end charity pictures -->
                                         <div class="carousel-caption">Overview
                                         </div>
                                       </div>
-                                     """
+                                     """.format(c_val=c_class)
                                             #.format(c_class = str(result['CHARITYCLASS']),
                                             #    colorstr = colorstr, c_predict=result['OOB_SCORE'],
                                             #    c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
@@ -232,10 +252,27 @@ def search():
         return render_template("search.html", txt = txt)
 
 def check_for_CN_rating(queryein):    
+    # SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
+    #   FROM cn_oob_1 as ob
+    #   JOIN charitynavigator as cn
+    #   ON cn.CN_ID = ob.CN_ID
     query_template="""
-      SELECT cn.CN_ID, cn.OVERALL_VALUE
-      FROM charitynavigator as cn
-      WHERE cn.EIN = '{}'
+    SELECT cn.CN_ID, cn.OVERALL_VALUE, ob.OOB_SCORE
+    FROM (SELECT c.CN_ID, c.OVERALL_VALUE
+          FROM charitynavigator as c
+          WHERE c.EIN = {}) as cn
+    JOIN cn_oob_1 as ob
+    WHERE ob.CN_ID = cn.CN_ID
+    """.format(str(queryein))
+    eng = db.create_engine(db_path)
+    results = eng.execute(query_template)
+    return results
+
+def get_category(queryein):
+    query_template="""
+    SELECT e.NTEECAT12 
+    FROM nteecat12 as e
+    WHERE e.EIN = {}
     """.format(str(queryein))
     eng = db.create_engine(db_path)
     results = eng.execute(query_template)
@@ -275,6 +312,47 @@ def search_parse(query):
     #    print result
     
     ## Check if unicode in table with regex: LIKE '%[^a-zA-Z0-9]%'
+
+def get_percentile(code,val):
+    # SHOULD CACHE ALL OF THESE RESULTS AND LOAD THEM INTO A TABLE
+    query_template = """
+    SELECT COUNT(CN_SCORE_PREDICT)
+    FROM class_score_link_2
+    WHERE NTEECAT12 = '{cod}' AND CN_SCORE_PREDICT > {va}
+    """.format(cod=code,va=val)
+    eng = db.create_engine(db_path)
+    results = eng.execute(query_template)
+    for result in results:
+        numfound = result['COUNT(CN_SCORE_PREDICT)']
+    
+    query_template = """
+    SELECT COUNT(CN_SCORE_PREDICT)
+    FROM class_score_link_2
+    WHERE NTEECAT12 = '{cod}'
+    """.format(cod=code)
+    eng = db.create_engine(db_path)
+    results = eng.execute(query_template)
+    for result in results:
+        numtotal = result['COUNT(CN_SCORE_PREDICT)']
+
+    pct = 100.-100.*float(numfound)/float(numtotal)
+    return pct
+    
+def translate_nteecode(code):
+    codedict={
+    "AR":"Arts, culture, and humanities",
+    "BH":"Higher Education"             ,
+    "ED":"Education"                    ,
+    "EN":"Environment"                  ,
+    "EH":"Hospitals"                    ,
+    "HE":"Health"                       ,
+    "HU":"Human services"               ,
+    "IN":"International"                ,
+    "PU":"Public and societal benefit"  ,
+    "RE":"Religion"                     ,
+    "MU":"Mutual benefit"               ,
+    "UN":"Unknown"}
+    return codedict[code]
 
 if __name__ == "__main__":
     app.run(port=5000)
