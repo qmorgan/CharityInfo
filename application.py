@@ -79,21 +79,24 @@ def search():
                         break
                     result_txt += '''
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
-                    '''.format(c_name = str(result['CHARITYNAME']))
-                    # if result['OOB_Score'] > 55.0:
-                    #     colorstr = "#B1CC9F"
-                    # elif result['OOB_Score'] > 40.0:
-                    #     colorstr = "#F1DD40"
-                    # else:
-                    #     colorstr = "#F36E4A"
-                    #     
-                    # if float(result['OVERALL_VALUE']) > 55.0:
-                    #     colorstr2 = "#B1CC9F"
-                    # elif float(result['OVERALL_VALUE']) > 40.0:
-                    #     colorstr2 = "#F1DD40"
-                    # else:
-                    #     colorstr2 = "#F36E4A"
-                    # don't filter for now.
+                    '''.format(c_name = str(result['NAME']).title())
+                    
+                    cn_rating_exists = False
+                    cn_id = -1
+                    ein=result['EIN']
+                    cnres = check_for_CN_rating(ein)
+                    for res in cnres:
+                        cn_id=res['CN_ID']
+                        cn_rating = res['OVERALL_VALUE']
+                        cn_rating_str = "{} / 70".format(cn_rating)
+                        cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cn_id)
+                        c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
+                    if cn_id == -1:
+                        cn_rating_str = "Not Available"
+                        cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.profile&ein={}".format(ein)
+                        c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
+
+                    
                     colorstr = "#8c92ac"
                     colorstr2 = "#8c92ac"
                     result_txt += """
@@ -113,20 +116,20 @@ def search():
 
                                             <li> 
                                             <p> <b>Class:</b> {c_class} </p>
-                                            <h3 style="color:{colorstr};margin-top: 10px;"> Predicted Rating: {c_predict:.2f} / 70</h3>
-                                            <p style="color:{colorstr2}"> <i>Actual Rating: {c_value} / 70</i></p>
-                                            
+                                            <h3 style="margin-top: 10px;"> Predicted Charity Navigator Rating: {c_predict:.2f} / 70</h3>
+                                            """.format(c_class='class',c_predict=result['CN_SCORE_PREDICT'])
+                    result_txt += """       <p style="color:{colorstr2}"> <i>Actual Charity Navigator Rating: {c_value} </i></p>""".format(colorstr2 = '#888888',c_value=c_value)
+                    result_txt += """          
                                             </li>
                                             <img src="http://i.imgur.com/xPg7jZD.png" width="580px" style="position:absolute;z-index:-1"></img>
                       					</div><!-- end charity pictures -->
                                         <div class="carousel-caption">Overview
                                         </div>
                                       </div>
-                                     """.format(CN_ID = str(result['CN_ID']),
-                                                c_class = str(result['CHARITYCLASS']),
-                                                colorstr = colorstr, c_predict=result['OOB_SCORE'],
-                                                c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
-                                     #           c_predict = result['OOB_Score'])
+                                     """
+                                            #.format(c_class = str(result['CHARITYCLASS']),
+                                            #    colorstr = colorstr, c_predict=result['OOB_SCORE'],
+                                            #    c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
                                      # <p> This is higher than <b>XX.X%</b> of all ranked charities of its class</p> 
                                      
                     result_txt += """<div class="item">
@@ -228,6 +231,16 @@ def search():
         </div>"""
         return render_template("search.html", txt = txt)
 
+def check_for_CN_rating(queryein):    
+    query_template="""
+      SELECT cn.CN_ID, cn.OVERALL_VALUE
+      FROM charitynavigator as cn
+      WHERE cn.EIN = '{}'
+    """.format(str(queryein))
+    eng = db.create_engine(db_path)
+    results = eng.execute(query_template)
+    return results
+    
 def search_parse(query):
     print "searching {}".format(query)
     # query_template = "SELECT * FROM charitynavigator WHERE CHARITYNAME LIKE '%%{}%%'".format(query)
@@ -240,12 +253,17 @@ def search_parse(query):
     #       ON cn.CN_ID = ob.CN_ID
     #       WHERE cn.CHARITYNAME LIKE '\:username'
     #       """).bindparams(query=query)
+    # query_template = """
+    # SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
+    #   FROM cn_oob_1 as ob
+    #   JOIN charitynavigator as cn
+    #   ON cn.CN_ID = ob.CN_ID
+    #   WHERE cn.CHARITYNAME LIKE '%%{}%%'
+    # """.format(query)
     query_template = """
-    SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
-    	FROM cn_oob_1 as ob
-    	JOIN charitynavigator as cn
-    	ON cn.CN_ID = ob.CN_ID
-    	WHERE cn.CHARITYNAME LIKE '%%{}%%'
+        SELECT s.NAME, s.CN_SCORE_PREDICT, s.EIN
+        FROM cn_predict_2_names as s
+        WHERE s.NAME LIKE '%%{}%%'
     """.format(query)
     print query_template
     eng = db.create_engine(db_path)
