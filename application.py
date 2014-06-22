@@ -74,14 +74,18 @@ def search():
                 result_txt = "<ul style='padding-left: 0px;'>"
                 count = 0
                 countlimit=30
+
+                
                 # loop through results and post box
                 for result in results:
                     count += 1
                     if count >= countlimit: # only print the first 30
                         break
+                    
+                    mycharityname = str(result['NAME']).title()
                     result_txt += '''
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
-                    '''.format(c_name = str(result['NAME']).title())
+                    '''.format(c_name = mycharityname)
                     
                     predicted_score = result['CN_SCORE_PREDICT']
                     
@@ -115,6 +119,7 @@ def search():
                     percentile = 0.0
                     percentile = get_percentile(c_class,predicted_score)
                     
+                    donationlink="https://www.networkforgood.org/donation/MakeDonation.aspx?ORGID2={}".format(ein)
                     
                     colorstr = "#8c92ac"
                     colorstr2 = "#8c92ac"
@@ -130,52 +135,62 @@ def search():
                                    <!-- Carousel items -->
                                    <div class="carousel-inner">
                                    """.format(res_num=count)
+                                   
+                    minxpos=72
+                    maxxpos=520
+                    xloc = predicted_score/70.0*(maxxpos-minxpos)+ minxpos
                     result_txt += """ <div class="item active">
-                      			        <div id="charitypictures">
+                                          <div id="charitypictures">
 
-                                            <li> 
-                                            <p> <b>Class:</b> {c_class} </p>
-                                            <h3 style="margin-top: 10px;"> Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70</h3>
-                                            """.format(c_class=c_class_str,c_predict=predicted_score)
+                                            <li>""" 
+                    result_txt += """       <p> <b>Class:</b> {c_class} </p>""".format(c_class=c_class_str)
+                    result_txt += """       <h3 style="margin-top: 10px;"> Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70</h3>""".format(c_predict=predicted_score)
                     result_txt += """       <p style="color:{colorstr2}"> <i>Actual CharityNavigator.org Rating: {c_value} </i></p>""".format(colorstr2 = '#888888',c_value=c_value)
-                    result_txt += """       <p style="color:{colorstr2}"> <i>This charity is predicted to be ranked higher than {perc:.1f}% of the charities in its class.</i></p>""".format(colorstr2 = '#888888',perc=percentile)
+                    result_txt += """       <p> This charity is predicted to be ranked higher than <b>{perc:.1f}%</b> of the charities in its class.</p>""".format(colorstr2 = '#888888',perc=percentile)
                     result_txt += """          
-                                            </li>
-                                            <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>
-                      					</div><!-- end charity pictures -->
+                                            </li>"""
+                    result_txt += """       <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>""".format(c_val=c_class)
+                    result_txt += """          <svg width="580" height="464">
+                                                <line x1="{xloc:.2f}" y1="30" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
+                                            </svg>""".format(xloc=xloc,xloc2=xloc)
+                                        
+                    result_txt += """    </div><!-- end charity pictures -->
                                         <div class="carousel-caption">Overview
                                         </div>
                                       </div>
-                                     """.format(c_val=c_class)
+                                     """
                                             #.format(c_class = str(result['CHARITYCLASS']),
                                             #    colorstr = colorstr, c_predict=result['OOB_SCORE'],
                                             #    c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
                                      # <p> This is higher than <b>XX.X%</b> of all ranked charities of its class</p> 
                                      
                     result_txt += """<div class="item">
-                        			        <div id="charitypictures">
+                                            <div id="charitypictures">
+                                            <br>
+                                            <p style="text-align:center"> <b>Highest ranked charities of class '{c_class_str}'</b></p>
+                                            <br>
+                                            <div class="CSSTableGenerator" style="width:600px;height:400px;">
+                                                            <table >
+                                """.format(c_class_str=c_class_str)
+                    result_txt += get_recommended_charities(c_class)
+                    
+                    result_txt += """
+                    </table>
+                      </div>
+                    """
+                    result_txt += """
 
-                                              <h3 style="color:#8c92ac">Similar charities with higher rankings include:</h3><br><br>
-                                              <li>My Incredible Charity: 67.3 / 70</li><br>
-                                              <li>A Pretty Great Charity: 64.5 / 70</li><br>
-                                              <li>Still Good Charity: 62.2 / 70</li><br>
-                                              <li>Yet Another Charity: 62.0 / 70</li><br><br>
-                                              <li><i>Each of these will link to my results for the charity</i><br>
-
-                        					</div><!-- end charity pictures --> 
-                        					<div class="carousel-caption">Comparison
-                        					</div>
+                                            </div><!-- end charity pictures --> 
+                                            <div class="carousel-caption">Comparison
+                                            </div>
                                       </div>
                                       <div class="item">
-                        			        <div id="charitypictures">
-                                            <p>SAMPLE Summary table (will make it nice with CSS)</p>
-                                              <img src="http://i.imgur.com/jghRFbd.png" style="position:absolute;z-index:-1" width="580px"></img>
-                                              
-                                              
-
-                        					</div><!-- end charity pictures -->                                     
-                        					<div class="carousel-caption">Tables
-                        					</div>
+                                            <div id="charitypictures" style="margin-left:auto;margin-right:auto">
+                                            
+<a href="{donationlink}" class="buttonname" style="margin-left:300px;margin-top:240px;">Donate</a>
+                                            </div><!-- end charity pictures -->                                     
+                                            <div class="carousel-caption">Donate
+                                            </div>
                                       </div>
                                    </div>
                                    <!-- Carousel nav -->
@@ -185,7 +200,7 @@ def search():
                                       data-slide="next"><span class="glyphicon">&rsaquo;</span></a>
                                 </div>
                                 
-                                """.format(res_num=count)
+                                """.format(donationlink=donationlink,res_num=count,charityname=mycharityname)
                 # looking for empty result lists. 
                 if totalcount == 0:
                     txt = """
@@ -334,9 +349,39 @@ def get_percentile(code,val):
     results = eng.execute(query_template)
     for result in results:
         numtotal = result['COUNT(CN_SCORE_PREDICT)']
-
+    
     pct = 100.-100.*float(numfound)/float(numtotal)
     return pct
+
+def get_recommended_charities(code):
+    query_template = """
+    SELECT DISTINCT(c.NAME), c.CN_SCORE_PREDICT
+    FROM cn_predict_2_names as c
+    JOIN(
+        SELECT EIN, CN_SCORE_PREDICT
+        FROM class_score_link_2
+        WHERE NTEECAT12 = '{cod}'
+        ORDER BY CN_SCORE_PREDICT DESC
+        LIMIT 15) as ff
+    WHERE ff.EIN = c.EIN
+    ORDER BY c.CN_SCORE_PREDICT DESC
+    """.format(cod=code)
+    eng = db.create_engine(db_path)
+    results = eng.execute(query_template)
+    restext = """<tr>
+                    <td>Name</td> <td><b>Ranking</b></td>
+                  </tr>
+                  """
+    count = 0
+    for result in results:
+        restext += """<tr>
+                        <td>{name}</td> <td><b>{rating:.2f} / 70</b></td>
+                      </tr>
+        """.format(name=result['NAME'].title(),rating=result['CN_SCORE_PREDICT'])
+        count += 1
+        if count > 8:
+            break
+    return restext
     
 def translate_nteecode(code):
     codedict={
