@@ -92,6 +92,10 @@ def search():
                     cn_rating_exists = False
                     cn_id = -1
                     ein=result['EIN']
+                    
+                    # donor advisory: -1 if not known, CN_ID if found.
+                    cndonoradvisoryid = check_for_donor_advisory(ein)
+                    
                     cnres = check_for_CN_rating(ein)
                     for res in cnres:
                         cn_id=res['CN_ID']
@@ -102,10 +106,14 @@ def search():
                         # change predicted score to out-of-bag estimate so it is not biased
                         predicted_score = res['OOB_SCORE']
                     if cn_id == -1:
-                        cn_rating_str = "Not Available"
-                        cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.profile&ein={}".format(ein)
-                        c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
-
+                        if cndonoradvisoryid == -1:
+                            cn_rating_str = "Not Available"
+                            cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.profile&ein={}".format(ein)
+                            c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
+                        else: 
+                            cn_rating_str = "DONOR ADVISORY"
+                            cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cndonoradvisoryid)
+                            c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
 
                     
                     categoryres = get_category(ein)
@@ -144,15 +152,53 @@ def search():
 
                                             <li>""" 
                     result_txt += """       <p> <b>Class:</b> {c_class} </p>""".format(c_class=c_class_str)
-                    result_txt += """       <h3 style="margin-top: 10px;"> Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70</h3>""".format(c_predict=predicted_score)
-                    result_txt += """       <p style="color:{colorstr2}"> <i>Actual CharityNavigator.org Rating: {c_value} </i></p>""".format(colorstr2 = '#888888',c_value=c_value)
-                    result_txt += """       <p> This charity is predicted to be ranked higher than <b>{perc:.1f}%</b> of the charities in its class.</p>""".format(colorstr2 = '#888888',perc=percentile)
+                    if cndonoradvisoryid == -1:
+                        SummaryText = """       This charity is predicted to be ranked higher than 
+                                            <i style="color:#E7573C;">{perc:.1f}%
+                                            </i> of the charities in its class.
+                                            """.format(colorstr2 = '#888888',perc=percentile)
+                    else:
+                        SummaryText = """ This charity has a {} on  
+                                        CharityNavigator.org. See their site for details.""".format(c_value)
+                    result_txt += """       <h3 style="
+                                                margin-left:30px;
+                                                margin-right:30px;
+                                                text-align:center;
+                                                border:1px solid #E7573C;
+                                                "> {}
+                                            </h3>""".format(SummaryText)
+                    
+                    result_txt += """       <p  style="
+                                                margin-top: 20px;
+                                                margin-bottom: 0px;
+                                                "> 
+                                                Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70
+                                            </p>""".format(c_predict=predicted_score)
+                    result_txt += """       <p style="
+                                                color:{colorstr2};
+                                                margin-bottom:0px;
+                                                "> 
+                                                <i>Actual CharityNavigator.org Rating: {c_value} </i>
+                                            </p>""".format(colorstr2 = '#888888',c_value=c_value)
                     result_txt += """          
                                             </li>"""
                     result_txt += """       <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>""".format(c_val=c_class)
+                    
+                    svg_label = """
+                    <text text-anchor="end" x="{maxxpos}" y="25">{title}</text>
+                    <line x1="{xstart}" x2="{maxxpos}" y1="32" y2="32" stroke="teal" stroke-width="2"></line></svg>
+                    """.format(xstart=xloc-30, maxxpos=maxxpos,title=mycharityname)
+                    
+                    # alternative. Old. 
+                    svg_label_2 = """
+                    <text text-anchor="end" x="195" y="184">This Charity</text>
+                    <line x1="200" x2="{xloc3:.2f}" y1="180" y2="180" stroke="teal" stroke-width="2"></line></svg>
+                    """.format(xloc3=xloc)
+                    
                     result_txt += """          <svg width="580" height="464">
-                                                <line x1="{xloc:.2f}" y1="30" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
-                                            </svg>""".format(xloc=xloc,xloc2=xloc)
+                                                <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
+                                                {svglabel}
+                                            </svg>""".format(xloc=xloc,xloc2=xloc,svglabel=svg_label)
                                         
                     result_txt += """    </div><!-- end charity pictures -->
                                         <div class="carousel-caption">Overview
@@ -282,6 +328,23 @@ def check_for_CN_rating(queryein):
     eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     return results
+
+
+def check_for_donor_advisory(queryein):
+    query_template="""
+    SELECT c.CN_ID, c.DONORADVISORY
+    FROM CNDonorAdvisory as c
+    WHERE c.EIN = {}
+    """.format(str(queryein))
+    eng = db.create_engine(db_path)
+    results = eng.execute(query_template)
+    advisoryid = -1
+    for result in results:
+        if result['DONORADVISORY'] == 1:
+            # we have a donor advisory! 
+            advisoryid = result['CN_ID']
+    return advisoryid
+    
 
 def get_category(queryein):
     query_template="""
