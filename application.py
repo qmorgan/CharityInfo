@@ -186,8 +186,13 @@ def search():
                     
                     svg_label = """
                     <text text-anchor="end" x="{maxxpos}" y="25">{title}</text>
-                    <line x1="{xstart}" x2="{maxxpos}" y1="32" y2="32" stroke="teal" stroke-width="2"></line></svg>
+                    <line x1="{xstart}" x2="{maxxpos}" y1="32" y2="32" stroke="teal" stroke-width="2"></line>
                     """.format(xstart=xloc-30, maxxpos=maxxpos,title=mycharityname)
+                    
+                    svg_label += """
+                    <line x1="83" x2="110" y1="90" y2="90" stroke="teal" stroke-width="1"></line>
+                    <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
+                    """.format(title=mycharityname)
                     
                     # alternative. Old. 
                     svg_label_2 = """
@@ -233,7 +238,7 @@ def search():
                                       <div class="item">
                                             <div id="charitypictures" style="margin-left:auto;margin-right:auto">
                                             
-<a href="{donationlink}" class="buttonname" style="margin-left:300px;margin-top:240px;">Donate</a>
+                                            <a href="{donationlink}" class="buttonname" style="margin-left:300px;margin-top:240px;">Donate</a>
                                             </div><!-- end charity pictures -->                                     
                                             <div class="carousel-caption">Donate
                                             </div>
@@ -299,7 +304,9 @@ def search():
         txt = """
         <div class="titlebox">
             <h1 style="color:#E7573C;"> Charity<b>Verity</b> </h1>
-            <p style="text-transform:none; font-variant:small-caps;">predicting charity ratings to guide effective altruism
+            <p style="text-transform:none; font-weight:bold; font-variant:small-caps;">predicting charity ratings to guide effective altruism
+            </p>
+            <p style="text-transform:none; font-variant:small-caps;">providing ratings for over 175,000 charities
             </p>
         </div>
         <div class="searchbox">
@@ -322,7 +329,7 @@ def check_for_CN_rating(queryein):
     FROM (SELECT c.CN_ID, c.OVERALL_VALUE
           FROM charitynavigator as c
           WHERE c.EIN = {}) as cn
-    JOIN cn_oob_1 as ob
+    JOIN cn_oob_3 as ob
     WHERE ob.CN_ID = cn.CN_ID
     """.format(str(queryein))
     eng = db.create_engine(db_path)
@@ -358,26 +365,14 @@ def get_category(queryein):
     
 def search_parse(query):
     print "searching {}".format(query)
-    # query_template = "SELECT * FROM charitynavigator WHERE CHARITYNAME LIKE '%%{}%%'".format(query)
     if "'" in query:
         raise Exception("The characters ', are not allowed ")
         
-    # t = text("""SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
-    #       FROM cn_oob_1 as ob
-    #       JOIN charitynavigator as cn
-    #       ON cn.CN_ID = ob.CN_ID
-    #       WHERE cn.CHARITYNAME LIKE '\:username'
-    #       """).bindparams(query=query)
-    # query_template = """
-    # SELECT cn.CN_ID, cn.CHARITYNAME, cn.CHARITYCLASS, cn.OVERALL_VALUE, ob.OOB_SCORE 
-    #   FROM cn_oob_1 as ob
-    #   JOIN charitynavigator as cn
-    #   ON cn.CN_ID = ob.CN_ID
-    #   WHERE cn.CHARITYNAME LIKE '%%{}%%'
-    # """.format(query)
+    #  TODO: Use bindparams to prevent sql injection? 
+    
     query_template = """
         SELECT s.NAME, s.CN_SCORE_PREDICT, s.EIN
-        FROM cn_predict_2_names as s
+        FROM cn_predict_3_names as s
         WHERE s.NAME LIKE '%%{}%%'
     """.format(query)
     print query_template
@@ -395,7 +390,7 @@ def get_percentile(code,val):
     # SHOULD CACHE ALL OF THESE RESULTS AND LOAD THEM INTO A TABLE
     query_template = """
     SELECT COUNT(CN_SCORE_PREDICT)
-    FROM class_score_link_2
+    FROM class_score_link_3
     WHERE NTEECAT12 = '{cod}' AND CN_SCORE_PREDICT > {va}
     """.format(cod=code,va=val)
     eng = db.create_engine(db_path)
@@ -405,7 +400,7 @@ def get_percentile(code,val):
     
     query_template = """
     SELECT COUNT(CN_SCORE_PREDICT)
-    FROM class_score_link_2
+    FROM class_score_link_3
     WHERE NTEECAT12 = '{cod}'
     """.format(cod=code)
     eng = db.create_engine(db_path)
@@ -419,10 +414,10 @@ def get_percentile(code,val):
 def get_recommended_charities(code):
     query_template = """
     SELECT DISTINCT(c.NAME), c.CN_SCORE_PREDICT
-    FROM cn_predict_2_names as c
+    FROM cn_predict_3_names as c
     JOIN(
         SELECT EIN, CN_SCORE_PREDICT
-        FROM class_score_link_2
+        FROM class_score_link_3
         WHERE NTEECAT12 = '{cod}'
         ORDER BY CN_SCORE_PREDICT DESC
         LIMIT 15) as ff
