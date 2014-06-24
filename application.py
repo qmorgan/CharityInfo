@@ -29,9 +29,9 @@ try:
         rdshost=os.environ.get("RDS_HOST")
     
     # local
-    db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
     # aws
-    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db = SQLAlchemy(app)
