@@ -568,7 +568,8 @@ margin:0px
 }
 
 #charitypictures {
-	margin-left: 112px;
+	margin-left: 100px;
+    margin-right: 100px;
 	margin-top: 20px;
 	position: absolute;
 	z-index: 108;
@@ -828,8 +829,6 @@ ul.footerlist li:hover {
     bottom: 20px;
   }
 }
-
-
 
 
 
