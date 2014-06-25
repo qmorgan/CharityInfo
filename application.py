@@ -89,8 +89,8 @@ def search():
                     
                     mycharityname = str(result['NAME']).title()
                     myshortcharityname = mycharityname
-                    if len(mycharityname) > 25:
-                        myshortcharityname = ' '.join(mycharityname[0:25].split(' ')[0:-1])+' ...'
+                    if len(mycharityname) > 28:
+                        myshortcharityname = ' '.join(mycharityname[0:28].split(' ')[0:-1])+' ...'
                     result_txt += '''
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
                     '''.format(c_name = mycharityname)
