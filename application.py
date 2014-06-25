@@ -29,9 +29,9 @@ try:
         rdshost=os.environ.get("RDS_HOST")
     
     # local
-    # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
     # aws
-    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db = SQLAlchemy(app)
@@ -83,6 +83,9 @@ def search():
                         break
                     
                     mycharityname = str(result['NAME']).title()
+                    myshortcharityname = mycharityname
+                    if len(mycharityname) > 25:
+                        myshortcharityname = ' '.join(mycharityname[0:25].split(' ')[0:-1])+' ...'
                     result_txt += '''
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
                     '''.format(c_name = mycharityname)
@@ -192,15 +195,15 @@ def search():
                     """.format(xloc=xloc, xloc2=xloc, xloc_minus=xloc-15, xloc_plus=xloc+15)
                          
                     # add to legend
-                    svg_label += """
-                    <line x1="83" x2="110" y1="90" y2="90" stroke="black" stroke-width="1"></line>
-                    <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
-                    """.format(title=mycharityname)
+                    # svg_label += """
+                    # <line x1="83" x2="110" y1="90" y2="90" stroke="black" stroke-width="1"></line>
+                    # <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
+                    # """.format(title=mycharityname)
                     
                     svg_label += """
                     <text text-anchor="start" x="0" y="0" fill="white" transform="translate({xstart},280)rotate(-90)">{title}</text>
                     
-                    """.format(xstart=xloc+4,title=mycharityname)
+                    """.format(xstart=xloc+4,title=myshortcharityname)
                     
                     linemarker = ""
                     
