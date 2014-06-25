@@ -37,10 +37,15 @@ try:
     db = SQLAlchemy(app)
 
     app.config.from_object(__name__)
-
+    
 
     # db.create_all()
     db.create_all()
+    
+    # create engine for feeding SQL
+    # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
+    eng = db.create_engine(db_path)
+    
 except:
     print "Cannot connect!"
 
@@ -356,7 +361,7 @@ def check_for_CN_rating(queryein):
     JOIN cn_oob_3 as ob
     WHERE ob.CN_ID = cn.CN_ID
     """.format(str(queryein))
-    eng = db.create_engine(db_path)
+
     results = eng.execute(query_template)
     return results
 
@@ -367,7 +372,6 @@ def check_for_donor_advisory(queryein):
     FROM CNDonorAdvisory as c
     WHERE c.EIN = {}
     """.format(str(queryein))
-    eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     advisoryid = -1
     for result in results:
@@ -383,7 +387,6 @@ def get_category(queryein):
     FROM nteecat12 as e
     WHERE e.EIN = {}
     """.format(str(queryein))
-    eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     return results
     
@@ -400,7 +403,6 @@ def search_parse(query):
         WHERE s.NAME LIKE '%%{}%%'
     """.format(query)
     print query_template
-    eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     print 'search complete'
     print results
@@ -417,7 +419,6 @@ def get_percentile(code,val):
     FROM class_score_link_3
     WHERE NTEECAT12 = '{cod}' AND CN_SCORE_PREDICT > {va}
     """.format(cod=code,va=val)
-    eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     for result in results:
         numfound = result['COUNT(CN_SCORE_PREDICT)']
@@ -427,7 +428,6 @@ def get_percentile(code,val):
     FROM class_score_link_3
     WHERE NTEECAT12 = '{cod}'
     """.format(cod=code)
-    eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     for result in results:
         numtotal = result['COUNT(CN_SCORE_PREDICT)']
@@ -448,7 +448,6 @@ def get_recommended_charities(code):
     WHERE ff.EIN = c.EIN
     ORDER BY c.CN_SCORE_PREDICT DESC
     """.format(cod=code)
-    eng = db.create_engine(db_path)
     results = eng.execute(query_template)
     restext = """<tr>
                     <td>Name</td> <td><b>Ranking</b></td>
