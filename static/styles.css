@@ -82,11 +82,11 @@ ul {
 	border-width:0px 0px 0px 0px;
 }
 .CSSTableGenerator tr:first-child td{
-		background:-o-linear-gradient(bottom, #ff5656 5%, #ff5656 100%);	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ff5656), color-stop(1, #ff5656) );
-	background:-moz-linear-gradient( center top, #ff5656 5%, #ff5656 100% );
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ff5656", endColorstr="#ff5656");	background: -o-linear-gradient(top,#ff5656,ff5656);
+		background:-o-linear-gradient(bottom, #E7573C 5%, #E7573C 100%);	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E7573C), color-stop(1, #E7573C) );
+	background:-moz-linear-gradient( center top, #E7573C 5%, #E7573C 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#E7573C", endColorstr="#E7573C");	background: -o-linear-gradient(top,#E7573C,E7573C);
 
-	background-color:#ff5656;
+	background-color:#E7573C;
 	border:0px solid #000000;
 	text-align:center;
 	border-width:0px 0px 1px 1px;
@@ -96,11 +96,11 @@ ul {
 	color:#ffffff;
 }
 .CSSTableGenerator tr:first-child:hover td{
-	background:-o-linear-gradient(bottom, #ff5656 5%, #ff5656 100%);	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ff5656), color-stop(1, #ff5656) );
-	background:-moz-linear-gradient( center top, #ff5656 5%, #ff5656 100% );
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ff5656", endColorstr="#ff5656");	background: -o-linear-gradient(top,#ff5656,ff5656);
+	background:-o-linear-gradient(bottom, #E7573C 5%, #E7573C 100%);	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E7573C), color-stop(1, #E7573C) );
+	background:-moz-linear-gradient( center top, #E7573C 5%, #E7573C 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#E7573C", endColorstr="#E7573C");	background: -o-linear-gradient(top,#E7573C,E7573C);
 
-	background-color:#ff5656;
+	background-color:#E7573C;
 }
 .CSSTableGenerator tr:first-child td:first-child{
 	border-width:0px 0px 1px 0px;

@@ -184,15 +184,36 @@ def search():
                                             </li>"""
                     result_txt += """       <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>""".format(c_val=c_class)
                     
+
+                    
                     svg_label = """
+                    <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="280" stroke="black" stroke-width="30" stroke-opacity="0.8"></line>
+                    <polygon points="{xloc_minus},280 {xloc_plus},280 {xloc},308 " style="fill:black;stroke:white;stroke-width:0;fill-opacity:0.8"></polygon>
+                    """.format(xloc=xloc, xloc2=xloc, xloc_minus=xloc-15, xloc_plus=xloc+15)
+                         
+                    # add to legend
+                    svg_label += """
+                    <line x1="83" x2="110" y1="90" y2="90" stroke="black" stroke-width="1"></line>
+                    <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
+                    """.format(title=mycharityname)
+                    
+                    svg_label += """
+                    <text text-anchor="start" x="0" y="0" fill="white" transform="translate({xstart},280)rotate(-90)">{title}</text>
+                    
+                    """.format(xstart=xloc+4,title=mycharityname)
+                    
+                    linemarker = ""
+                    
+                    linemarker_1 = """
+                    <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
+                    """.format(xloc=xloc,xloc2=xloc)
+                    
+                    # alternative. old
+                    svg_label_1 = """
                     <text text-anchor="end" x="{maxxpos}" y="25">{title}</text>
                     <line x1="{xstart}" x2="{maxxpos}" y1="32" y2="32" stroke="teal" stroke-width="2"></line>
                     """.format(xstart=xloc-30, maxxpos=maxxpos,title=mycharityname)
                     
-                    svg_label += """
-                    <line x1="83" x2="110" y1="90" y2="90" stroke="teal" stroke-width="1"></line>
-                    <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
-                    """.format(title=mycharityname)
                     
                     # alternative. Old. 
                     svg_label_2 = """
@@ -201,9 +222,9 @@ def search():
                     """.format(xloc3=xloc)
                     
                     result_txt += """          <svg width="580" height="464">
-                                                <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
+                                                {linemarker}
                                                 {svglabel}
-                                            </svg>""".format(xloc=xloc,xloc2=xloc,svglabel=svg_label)
+                                            </svg>""".format(linemarker=linemarker,svglabel=svg_label)
                                         
                     result_txt += """    </div><!-- end charity pictures -->
                                         <div class="carousel-caption">Overview
