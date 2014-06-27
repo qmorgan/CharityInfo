@@ -247,6 +247,25 @@ def search():
                     result_txt += """<div class="item">
                                             <div id="charitypictures">
                                             <br>
+                                             <p style="text-align:center"> <b>Mission</b></p>
+                                             <br>
+                                            {description}
+                                            <p style="text-align:center;padding-top:30px">
+                                                <a href="{donationlink}" class="buttonname">Donate</a>
+                                            </p>
+                    """.format(description=get_description(ein),donationlink=donationlink)
+
+                    result_txt += """
+
+                                            </div><!-- end charity pictures --> 
+                                            <div class="carousel-caption">About
+                                            </div>
+                                      </div>
+                                      <div class="item">
+                                            <div id="charitypictures">
+                                            
+
+                                            <br>
                                             <p style="text-align:center"> <b>Highest ranked charities of class '{c_class_str}'</b></p>
                                             <br>
                                             <div class="CSSTableGenerator" style="width:600px;height:400px;">
@@ -257,25 +276,9 @@ def search():
                     result_txt += """
                     </table>
                       </div>
-                    """
-                    print '5'
-                    result_txt += """
-
-                                            </div><!-- end charity pictures --> 
-                                            <div class="carousel-caption">Comparison
-                                            </div>
-                                      </div>
-                                      <div class="item">
-                                            <div id="charitypictures">
-                                            <br>
-                                             <p style="text-align:center"> <b>Mission</b></p>
-                                             <br>
-                                            {description}
-                                            <p style="text-align:center;padding-top:30px">
-                                                <a href="{donationlink}" class="buttonname">Donate</a>
-                                            </p>
+                                            
                                             </div><!-- end charity pictures -->                                     
-                                            <div class="carousel-caption">Donate
+                                            <div class="carousel-caption">Comparison
                                             </div>
                                       </div>
                                    </div>
@@ -286,9 +289,9 @@ def search():
                                       data-slide="next"><span class="glyphicon">&rsaquo;</span></a>
                                 </div>
                                 
-                                """.format(description=get_description(ein),donationlink=donationlink,res_num=count,charityname=mycharityname)
+                                """.format(res_num=count,charityname=mycharityname)
                 # looking for empty result lists. 
-                    print '6'
+                    
                 if totalcount == 0:
                     txt = """
                         <p></p>
@@ -304,7 +307,7 @@ def search():
                         count_limit_string = ". Showing the first {0}".format(count)
                     else:
                         count_limit_string = ""
-                    print '7'
+
                     txt = """
                         <p></p>
                         <p style="color:#ccc">Your search for: <b>'{query}'</b> returned {lenresults} results{cstr}:</p>
@@ -401,22 +404,16 @@ def get_description(queryein):
     for result in results:
         description = result['description']
     
-    print '1'
     description=description.decode("utf-8")
-    print '2'
+
     if description.isupper():
-        print '2.5'
         desctxt = "<p>{}</p>".format(description.capitalize()) 
     else:
-        print '2.8'
         desctxt = "<p>{}</p>".format(description.encode("utf-8"))
-    print '3'
-    
-    # avoid the unicodedecodeerror!
-    
-    
 
     
+    # avoid the unicodedecodeerror!
+
     return desctxt
 
 def get_category(queryein):
