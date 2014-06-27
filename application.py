@@ -29,9 +29,9 @@ try:
         rdshost=os.environ.get("RDS_HOST")
     
     # local
-    # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
     # aws
-    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db = SQLAlchemy(app)
@@ -45,6 +45,7 @@ try:
     # create engine for feeding SQL
     # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
     eng = db.create_engine(db_path)
+    conn=eng.connect()
     
 except:
     print "Cannot connect!"
@@ -79,7 +80,6 @@ def search():
                 result_txt = "<ul style='padding-left: 0px;'>"
                 count = 0
                 countlimit=30
-
                 
                 # loop through results and post box
                 for result in results:
@@ -258,6 +258,7 @@ def search():
                     </table>
                       </div>
                     """
+                    print '5'
                     result_txt += """
 
                                             </div><!-- end charity pictures --> 
@@ -265,9 +266,14 @@ def search():
                                             </div>
                                       </div>
                                       <div class="item">
-                                            <div id="charitypictures" style="margin-left:auto;margin-right:auto">
-                                            
-                                            <a href="{donationlink}" class="buttonname" style="margin-left:300px;margin-top:240px;">Donate</a>
+                                            <div id="charitypictures">
+                                            <br>
+                                             <p style="text-align:center"> <b>Mission</b></p>
+                                             <br>
+                                            {description}
+                                            <p style="text-align:center;padding-top:30px">
+                                                <a href="{donationlink}" class="buttonname">Donate</a>
+                                            </p>
                                             </div><!-- end charity pictures -->                                     
                                             <div class="carousel-caption">Donate
                                             </div>
@@ -280,8 +286,9 @@ def search():
                                       data-slide="next"><span class="glyphicon">&rsaquo;</span></a>
                                 </div>
                                 
-                                """.format(donationlink=donationlink,res_num=count,charityname=mycharityname)
+                                """.format(description=get_description(ein),donationlink=donationlink,res_num=count,charityname=mycharityname)
                 # looking for empty result lists. 
+                    print '6'
                 if totalcount == 0:
                     txt = """
                         <p></p>
@@ -297,6 +304,7 @@ def search():
                         count_limit_string = ". Showing the first {0}".format(count)
                     else:
                         count_limit_string = ""
+                    print '7'
                     txt = """
                         <p></p>
                         <p style="color:#ccc">Your search for: <b>'{query}'</b> returned {lenresults} results{cstr}:</p>
@@ -304,7 +312,7 @@ def search():
                         <p style="text-align:center"><a href="{search}">Search Again
                                                     </a></p>""".format(query = query, lenresults=totalcount, 
                                                             cstr=count_limit_string,
-                                                            result = result_txt.decode('utf-8'),
+                                                            result = result_txt,
                                                             search = url_for('search'))
                  # if the SQL search fails
             except Exception, e:    
@@ -346,6 +354,8 @@ def search():
                 </searchfield>
             </form>
         </div>"""
+        
+        
         return render_template("search.html", txt = txt)
 
 def check_for_CN_rating(queryein):    
@@ -362,7 +372,7 @@ def check_for_CN_rating(queryein):
     WHERE ob.CN_ID = cn.CN_ID
     """.format(str(queryein))
 
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     return results
 
 
@@ -372,7 +382,7 @@ def check_for_donor_advisory(queryein):
     FROM CNDonorAdvisory as c
     WHERE c.EIN = {}
     """.format(str(queryein))
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     advisoryid = -1
     for result in results:
         if result['DONORADVISORY'] == 1:
@@ -381,13 +391,41 @@ def check_for_donor_advisory(queryein):
     return advisoryid
     
 
+def get_description(queryein):
+    query_template = """
+    SELECT description FROM missions
+    WHERE EIN = {ein}
+    """.format(ein=queryein)
+    results = conn.execute(query_template)
+    description=''
+    for result in results:
+        description = result['description']
+    
+    print '1'
+    description=description.decode("utf-8")
+    print '2'
+    if description.isupper():
+        print '2.5'
+        desctxt = "<p>{}</p>".format(description.capitalize()) 
+    else:
+        print '2.8'
+        desctxt = "<p>{}</p>".format(description.encode("utf-8"))
+    print '3'
+    
+    # avoid the unicodedecodeerror!
+    
+    
+
+    
+    return desctxt
+
 def get_category(queryein):
     query_template="""
     SELECT e.NTEECAT12 
     FROM nteecat12 as e
     WHERE e.EIN = {}
     """.format(str(queryein))
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     return results
     
 def search_parse(query):
@@ -403,7 +441,7 @@ def search_parse(query):
         WHERE s.NAME LIKE '%%{}%%'
     """.format(query)
     print query_template
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     print 'search complete'
     print results
     return results
@@ -419,7 +457,7 @@ def get_percentile(code,val):
     FROM class_score_link_3
     WHERE NTEECAT12 = '{cod}' AND CN_SCORE_PREDICT > {va}
     """.format(cod=code,va=val)
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     for result in results:
         numfound = result['COUNT(CN_SCORE_PREDICT)']
     
@@ -428,7 +466,7 @@ def get_percentile(code,val):
     FROM class_score_link_3
     WHERE NTEECAT12 = '{cod}'
     """.format(cod=code)
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     for result in results:
         numtotal = result['COUNT(CN_SCORE_PREDICT)']
     
@@ -448,7 +486,7 @@ def get_recommended_charities(code):
     WHERE ff.EIN = c.EIN
     ORDER BY c.CN_SCORE_PREDICT DESC
     """.format(cod=code)
-    results = eng.execute(query_template)
+    results = conn.execute(query_template)
     restext = """<tr>
                     <td>Name</td> <td><b>Ranking</b></td>
                   </tr>
@@ -463,6 +501,8 @@ def get_recommended_charities(code):
         if count > 8:
             break
     return restext
+    
+    
     
 def translate_nteecode(code):
     codedict={
