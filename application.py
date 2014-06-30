@@ -73,13 +73,15 @@ def search():
         if query not in (""," ",None):
             try:
                 # try to search
-                results = search_parse(query)
+                count = 0
+                countlimit=20
+                
+                results = search_parse(query,countlimit=countlimit)
                 print 'search done'
                 totalcount = int(results.rowcount)
                 print 'Found %i items' % (totalcount)
                 result_txt = "<ul style='padding-left: 0px;'>"
-                count = 0
-                countlimit=30
+
                 
                 # loop through results and post box
                 for result in results:
@@ -246,11 +248,11 @@ def search():
                                      
                     result_txt += """<div class="item">
                                             <div id="charitypictures">
-                                            <br>
-                                             <p style="text-align:center"> <b>Mission</b></p>
-                                             <br>
+                                            
+                                             <p style="text-align:center;padding:8px"> <b>Mission</b></p>
+                                             
                                             {description}
-                                            <p style="text-align:center;padding-top:30px">
+                                            <p style="text-align:center;padding-top:8px">
                                                 <a href="{donationlink}" class="buttonname">Donate</a>
                                             </p>
                     """.format(description=get_description(ein),donationlink=donationlink)
@@ -265,9 +267,9 @@ def search():
                                             <div id="charitypictures">
                                             
 
-                                            <br>
-                                            <p style="text-align:center"> <b>Highest ranked charities of class '{c_class_str}'</b></p>
-                                            <br>
+                                            
+                                            <p style="text-align:center;padding:8px;"> <b>Highest ranked charities of class '{c_class_str}'</b></p>
+                                            
                                             <div class="CSSTableGenerator" style="width:600px;height:400px;">
                                                             <table >
                                 """.format(c_class_str=c_class_str)
@@ -302,18 +304,21 @@ def search():
                                                             search = url_for('search'))
                 # For non-empty result lists
                 else: 
+                    print count
+                    print countlimit
+                    print totalcount
                     print "found {lenresults} items".format(lenresults=count)
-                    if count < totalcount:
-                        count_limit_string = ". Showing the first {0}".format(count)
+                    if totalcount > countlimit:
+                        count_limit_string = "returned more than {lenresults} results. Showing the first {cnt}".format(lenresults=count,cnt=count)
                     else:
-                        count_limit_string = ""
+                        count_limit_string = "returned {lenresults} results.".format(lenresults=totalcount)
 
                     txt = """
                         <p></p>
-                        <p style="color:#ccc">Your search for: <b>'{query}'</b> returned {lenresults} results{cstr}:</p>
+                        <p style="color:#ccc">Your search for: <b>'{query}'</b> {cstr}:</p>
                         <p>{result}</ul></p>
                         <p style="text-align:center"><a href="{search}">Search Again
-                                                    </a></p>""".format(query = query, lenresults=totalcount, 
+                                                    </a></p>""".format(query = query,  
                                                             cstr=count_limit_string,
                                                             result = result_txt,
                                                             search = url_for('search'))
@@ -352,12 +357,17 @@ def search():
         <div class="searchbox">
             <form action="search" method="POST">
                 <searchfield>
-                <p><input style="width:100%;text-align: center;" type="text"  name="query" placeholder="Charity Name"/></p>
-                <p><input style="width:100%;height:30px;text-align: center;"type="submit" class="button"/></p>
+                <p style="
+                    margin-bottom: 6px;
+                "><input style="text-align: center;" type="text"  name="query" placeholder="Charity Name" id="charityName" class="typeahead" />                 
+                <p style="
+                    margin-left: 100px;
+                    margin-right: 100px;
+                "><input style="width:88px;height:30px;text-align: center;"type="submit" class="button"/></p>
                 </searchfield>
             </form>
         </div>"""
-        
+         
         
         return render_template("search.html", txt = txt)
 
@@ -425,7 +435,7 @@ def get_category(queryein):
     results = conn.execute(query_template)
     return results
     
-def search_parse(query):
+def search_parse(query,countlimit):
     print "searching {}".format(query)
     if "'" in query:
         raise Exception("The characters ', are not allowed ")
@@ -436,7 +446,9 @@ def search_parse(query):
         SELECT s.NAME, s.CN_SCORE_PREDICT, s.EIN
         FROM cn_predict_3_names as s
         WHERE s.NAME LIKE '%%{}%%'
-    """.format(query)
+        ORDER BY s.CN_SCORE_PREDICT DESC
+        LIMIT {}
+    """.format(query,countlimit+1)
     print query_template
     results = conn.execute(query_template)
     print 'search complete'
@@ -518,7 +530,7 @@ def translate_nteecode(code):
     return codedict[code]
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(port=8000)
 
 
 

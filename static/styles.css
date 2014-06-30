@@ -197,7 +197,7 @@ margin:0px
 
 @media screen and (min-height: 200px){
     .searchbox {
-    width:300px;
+    width:288px;
     margin-left:auto; 
     margin-right:auto;
     margin-top:55px;
@@ -213,7 +213,7 @@ margin:0px
 }
 @media screen and (min-height: 400px){
     .searchbox {
-    width:300px;
+    width:288px;
     margin-left:auto; 
     margin-right:auto;
     margin-top:65px;
@@ -229,7 +229,7 @@ margin:0px
 }
 @media screen and (min-height: 600px){
     .searchbox {
-    width:300px;
+    width:288px;
     margin-left:auto; 
     margin-right:auto;
     margin-top:165px;
@@ -245,7 +245,7 @@ margin:0px
 }
 @media screen and (min-height: 800px){
     .searchbox {
-    width:300px;
+    width:288px;
     margin-left:auto; 
     margin-right:auto;
     margin-top:265px;
@@ -262,7 +262,7 @@ margin:0px
 }
 @media screen and (min-height: 1000px){
     .searchbox {
-    width:300px;
+    width:288px;
     margin-left:auto; 
     margin-right:auto;
     margin-top:365px;
@@ -278,7 +278,7 @@ margin:0px
 }
 @media screen and (min-height: 1200px){
     .searchbox {
-    width:300px;
+    width:288px;
     margin-left:auto; 
     margin-right:auto;
     margin-top:565px;
