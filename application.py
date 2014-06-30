@@ -29,9 +29,9 @@ try:
         rdshost=os.environ.get("RDS_HOST")
     
     # local
-    db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
     # aws
-    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     db = SQLAlchemy(app)
@@ -366,6 +366,8 @@ def search():
                 "><input style="width:88px;height:30px;text-align: center;"type="submit" class="button"/></p>
                 </searchfield>
             </form>
+            <p style="text-align:center; text-transform:none; font-variant:small-caps; color:#ccc">v0.3</p>
+            
         </div>"""
          
         
@@ -421,8 +423,10 @@ def get_description(queryein):
     else:
         desctxt = "<p>{}</p>".format(description.encode("utf-8"))
 
-    
-    # avoid the unicodedecodeerror!
+    if description == '':
+        desctxt = """<p>A mission statement for this charity is not in our database. Please contact me
+         at <a href='mailto:qmorgan@gmail.com'>qmorgan@gmail.com</a> to have a mission statement added.</p>"""    
+         # avoid the unicodedecodeerror!
 
     return desctxt
 
