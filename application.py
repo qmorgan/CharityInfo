@@ -44,7 +44,7 @@ try:
     
     # create engine for feeding SQL
     # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
-    eng = db.create_engine(db_path)
+    eng = db.create_engine(db_path, pool_recycle=3600)
     conn=eng.connect()
     
 except:
