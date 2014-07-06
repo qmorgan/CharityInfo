@@ -6,7 +6,9 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import sqlite3
 from os.path import exists
 import codecs
-
+from sqlalchemy import exc
+from sqlalchemy import event
+from sqlalchemy.pool import Pool
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -52,9 +54,7 @@ except:
 
 
 
-from sqlalchemy import exc
-from sqlalchemy import event
-from sqlalchemy.pool import Pool
+
 
 # this doesn't seem to work.. 
 @event.listens_for(Pool, "checkout")
