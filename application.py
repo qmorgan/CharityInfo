@@ -41,13 +41,15 @@ try:
     app.config.from_object(__name__)
     
 
-    # db.create_all()
-    db.create_all()
-    
+
     # create engine for feeding SQL
     # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
-    eng = db.create_engine(db_path, pool_recycle=3600)
+    eng = db.create_engine(db_path, pool_size=20, pool_recycle=3600)
     conn=eng.connect()
+
+    # db.create_all()
+    # db.create_all()
+
     
 except:
     print "Cannot connect!"
