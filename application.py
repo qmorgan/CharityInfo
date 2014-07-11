@@ -375,7 +375,7 @@ def search():
             <h1 style="color:#E7573C;"> Charity<b>Verity</b> </h1>
             <p style="text-transform:none; font-weight:bold; font-variant:small-caps;">predicting charity ratings to guide effective altruism
             </p>
-            <p style="text-transform:none; font-variant:small-caps;">providing ratings for over 175,000 charities
+            <p style="text-transform:none; font-variant:small-caps;">providing ratings for over 150,000 charities
             </p>
         </div>
         <div class="searchbox">
@@ -390,7 +390,7 @@ def search():
                 "><input style="width:88px;height:30px;text-align: center;"type="submit" class="button"/></p>
                 </searchfield>
             </form>
-            <p style="text-align:center; text-transform:none; font-variant:small-caps; color:#ccc">v0.3</p>
+            <p style="text-align:center; text-transform:none; font-variant:small-caps; color:#ccc">v0.4</p>
             
         </div>"""
          
@@ -407,7 +407,7 @@ def check_for_CN_rating(queryein):
     FROM (SELECT c.CN_ID, c.OVERALL_VALUE
           FROM charitynavigator as c
           WHERE c.EIN = {}) as cn
-    JOIN cn_oob_3 as ob
+    JOIN cn_oob_4 as ob
     WHERE ob.CN_ID = cn.CN_ID
     """.format(str(queryein))
 
@@ -472,7 +472,7 @@ def search_parse(query,countlimit):
     
     query_template = """
         SELECT s.NAME, s.CN_SCORE_PREDICT, s.EIN
-        FROM cn_predict_3_names as s
+        FROM cn_predict_4_names as s
         WHERE s.NAME LIKE '%%{}%%'
         ORDER BY s.CN_SCORE_PREDICT DESC
         LIMIT {}
@@ -491,7 +491,7 @@ def get_percentile(code,val):
     # SHOULD CACHE ALL OF THESE RESULTS AND LOAD THEM INTO A TABLE
     query_template = """
     SELECT COUNT(CN_SCORE_PREDICT)
-    FROM class_score_link_3
+    FROM class_score_link_4
     WHERE NTEECAT12 = '{cod}' AND CN_SCORE_PREDICT > {va}
     """.format(cod=code,va=val)
     results = conn.execute(query_template)
@@ -500,7 +500,7 @@ def get_percentile(code,val):
     
     query_template = """
     SELECT COUNT(CN_SCORE_PREDICT)
-    FROM class_score_link_3
+    FROM class_score_link_4
     WHERE NTEECAT12 = '{cod}'
     """.format(cod=code)
     results = conn.execute(query_template)
@@ -513,10 +513,10 @@ def get_percentile(code,val):
 def get_recommended_charities(code):
     query_template = """
     SELECT DISTINCT(c.NAME), c.CN_SCORE_PREDICT
-    FROM cn_predict_3_names as c
+    FROM cn_predict_4_names as c
     JOIN(
         SELECT EIN, CN_SCORE_PREDICT
-        FROM class_score_link_3
+        FROM class_score_link_4
         WHERE NTEECAT12 = '{cod}'
         ORDER BY CN_SCORE_PREDICT DESC
         LIMIT 15) as ff
