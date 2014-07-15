@@ -15,7 +15,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 application = Flask(__name__) #update 
 app = application
 app.debug = True
-connect_to_server()
 
 try:
     import os
