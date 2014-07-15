@@ -17,42 +17,40 @@ app = application
 app.debug = True
 connect_to_server()
 
-def connect_to_server():
+try:
+    import os
+    import sys
+    if not os.environ.has_key("MYSQL_PASS"):
+        print "You need to set the environment variable MYSQL_PASS to"
+        print "point to your mysql password"
+        sys.exit(1)
+    elif not os.environ.has_key("RDS_HOST"):
+        print "You need to set the environment variable RDS_HOST to"
+        print "point to your amazon RDS host" 
+    else: 
+        passwd = os.environ.get("MYSQL_PASS")
+        rdshost=os.environ.get("RDS_HOST")
 
-    try:
-        import os
-        import sys
-        if not os.environ.has_key("MYSQL_PASS"):
-            print "You need to set the environment variable MYSQL_PASS to"
-            print "point to your mysql password"
-            sys.exit(1)
-        elif not os.environ.has_key("RDS_HOST"):
-            print "You need to set the environment variable RDS_HOST to"
-            print "point to your amazon RDS host" 
-        else: 
-            passwd = os.environ.get("MYSQL_PASS")
-            rdshost=os.environ.get("RDS_HOST")
-    
-        # local
-        # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
-        # aws
-        db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    # local
+    # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
+    # aws
+    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
-        app.config['SQLALCHEMY_DATABASE_URI'] = db_path
-        db = SQLAlchemy(app)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+    db = SQLAlchemy(app)
 
-        app.config.from_object(__name__)
-    
-        # create engine for feeding SQL
-        # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
-        eng = db.create_engine(db_path, pool_size=20, pool_recycle=3600)
-        conn=eng.connect()
+    app.config.from_object(__name__)
 
-        # db.create_all()
-        # db.create_all()
+    # create engine for feeding SQL
+    # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
+    eng = db.create_engine(db_path, pool_size=20, pool_recycle=3600)
+    conn=eng.connect()
 
-    except:
-        raise Exception("Cannot connect to database!")
+    # db.create_all()
+    # db.create_all()
+
+except:
+    raise Exception("Cannot connect to database!")
 
 
 
