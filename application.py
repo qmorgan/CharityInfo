@@ -56,272 +56,282 @@ def search():
     if request.method == 'POST':
         query = request.form['query']
         if query not in (""," ",None):
-            try:
-                # try to search
-                count = 0
-                countlimit=20
+            attempted_reconnect_or_success=0
+            while attempted_reconnect_or_success < 3:
+                # attempt to search, reconnect if server dead
+                try:
+                    # try to search
+                    count = 0
+                    countlimit=20
                 
-                results = search_parse(query,countlimit=countlimit)
-                # print 'search done'
-                totalcount = int(len(results))
-                # print 'Found %i items' % (totalcount)
-                result_txt = "<ul style='padding-left: 0px;'>"
+                    results = search_parse(query,countlimit=countlimit)
+                    attempted_reconnect_or_success = 100 # great success
+                    
+                    # print 'search done'
+                    totalcount = int(len(results))
+                    # print 'Found %i items' % (totalcount)
+                    result_txt = "<ul style='padding-left: 0px;'>"
 
                 
-                # loop through results and post box
-                for result in results:
-                    count += 1
-                    if count >= countlimit: # only print the first 30
-                        break
+                    # loop through results and post box
+                    for result in results:
+                        count += 1
+                        if count >= countlimit: # only print the first 30
+                            break
                     
-                    #('AGA KHAN FOUNDATION USA', 65.0679, 521231983),
+                        #('AGA KHAN FOUNDATION USA', 65.0679, 521231983),
                     
-                    mycharityname = str(result[0]).title()
-                    myshortcharityname = mycharityname
-                    if len(mycharityname) > 28:
-                        myshortcharityname = ' '.join(mycharityname[0:28].split(' ')[0:-1])+' ...'
-                    result_txt += '''
-                    <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
-                    '''.format(c_name = mycharityname)
+                        mycharityname = str(result[0]).title()
+                        myshortcharityname = mycharityname
+                        if len(mycharityname) > 28:
+                            myshortcharityname = ' '.join(mycharityname[0:28].split(' ')[0:-1])+' ...'
+                        result_txt += '''
+                        <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
+                        '''.format(c_name = mycharityname)
                     
-                    predicted_score = result[1]
+                        predicted_score = result[1]
                     
-                    cn_rating_exists = False
-                    cn_id = -1
-                    ein=result[2]
+                        cn_rating_exists = False
+                        cn_id = -1
+                        ein=result[2]
                     
-                    # donor advisory: -1 if not known, CN_ID if found.
-                    cndonoradvisoryid = check_for_donor_advisory(ein)
+                        # donor advisory: -1 if not known, CN_ID if found.
+                        cndonoradvisoryid = check_for_donor_advisory(ein)
                     
-                    cnres = check_for_CN_rating(ein)
-                    for res in cnres:
-                        cn_id=res[0]
-                        cn_rating = res[1]
-                        cn_rating_str = "{} / 70".format(cn_rating)
-                        cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cn_id)
-                        c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
-                        # change predicted score to out-of-bag estimate so it is not biased
-                        predicted_score = res[2]
-                    if cn_id == -1:
-                        if cndonoradvisoryid == -1:
-                            cn_rating_str = "Not Available"
-                            cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.profile&ein={}".format(ein)
+                        cnres = check_for_CN_rating(ein)
+                        for res in cnres:
+                            cn_id=res[0]
+                            cn_rating = res[1]
+                            cn_rating_str = "{} / 70".format(cn_rating)
+                            cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cn_id)
                             c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
-                        else: 
-                            cn_rating_str = "DONOR ADVISORY"
-                            cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cndonoradvisoryid)
-                            c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
+                            # change predicted score to out-of-bag estimate so it is not biased
+                            predicted_score = res[2]
+                        if cn_id == -1:
+                            if cndonoradvisoryid == -1:
+                                cn_rating_str = "Not Available"
+                                cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.profile&ein={}".format(ein)
+                                c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
+                            else: 
+                                cn_rating_str = "DONOR ADVISORY"
+                                cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cndonoradvisoryid)
+                                c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
 
                     
-                    categoryres = get_category(ein)
-                    c_class = 'UNKNOWN'
-                    for res in categoryres:
-                        c_class = res[0]
+                        categoryres = get_category(ein)
+                        c_class = 'UNKNOWN'
+                        for res in categoryres:
+                            c_class = res[0]
                     
                 
-                    c_class_str = translate_nteecode(c_class)
+                        c_class_str = translate_nteecode(c_class)
                     
-                    percentile = 0.0
-                    percentile = get_percentile(c_class,predicted_score)
+                        percentile = 0.0
+                        percentile = get_percentile(c_class,predicted_score)
                     
-                    donationlink="https://www.networkforgood.org/donation/MakeDonation.aspx?ORGID2={}".format(ein)
+                        donationlink="https://www.networkforgood.org/donation/MakeDonation.aspx?ORGID2={}".format(ein)
                     
-                    colorstr = "#8c92ac"
-                    colorstr2 = "#8c92ac"
-                    result_txt += """
-                                <!-- set data-interval= an integer to auto-slide after initial click -->
-                                <div id="Carousel-{res_num}" class="carousel slide" data-interval="false"> 
-                                   <!-- Carousel indicators -->
-                                   <ol class="carousel-indicators">
-                                      <li data-target="#Carousel-{res_num}" data-slide-to="0" class="active"></li>
-                                      <li data-target="#Carousel-{res_num}" data-slide-to="1"></li>
-                                      <li data-target="#Carousel-{res_num}" data-slide-to="2"></li>
-                                   </ol>
-                                   <!-- Carousel items -->
-                                   <div class="carousel-inner">
-                                   """.format(res_num=count)
+                        colorstr = "#8c92ac"
+                        colorstr2 = "#8c92ac"
+                        result_txt += """
+                                    <!-- set data-interval= an integer to auto-slide after initial click -->
+                                    <div id="Carousel-{res_num}" class="carousel slide" data-interval="false"> 
+                                       <!-- Carousel indicators -->
+                                       <ol class="carousel-indicators">
+                                          <li data-target="#Carousel-{res_num}" data-slide-to="0" class="active"></li>
+                                          <li data-target="#Carousel-{res_num}" data-slide-to="1"></li>
+                                          <li data-target="#Carousel-{res_num}" data-slide-to="2"></li>
+                                       </ol>
+                                       <!-- Carousel items -->
+                                       <div class="carousel-inner">
+                                       """.format(res_num=count)
                                    
-                    minxpos=72
-                    maxxpos=520
-                    xloc = predicted_score/70.0*(maxxpos-minxpos)+ minxpos
-                    result_txt += """ <div class="item active">
-                                          <div id="charitypictures">
+                        minxpos=72
+                        maxxpos=520
+                        xloc = predicted_score/70.0*(maxxpos-minxpos)+ minxpos
+                        result_txt += """ <div class="item active">
+                                              <div id="charitypictures">
 
-                                            <li>""" 
-                    result_txt += """       <p> <b>Class:</b> {c_class} </p>""".format(c_class=c_class_str)
-                    if cndonoradvisoryid == -1:
-                        SummaryText = """       This charity is predicted to be ranked higher than 
-                                            <i style="color:#E7573C;">{perc:.1f}%
-                                            </i> of the charities in its class.
-                                            """.format(colorstr2 = '#888888',perc=percentile)
-                    else:
-                        SummaryText = """ This charity has a {} on  
-                                        CharityNavigator.org. See their site for details.""".format(c_value)
-                    result_txt += """       <h3 style="
-                                                margin-left:30px;
-                                                margin-right:30px;
-                                                text-align:center;
-                                                border:1px solid #E7573C;
-                                                "> {}
-                                            </h3>""".format(SummaryText)
+                                                <li>""" 
+                        result_txt += """       <p> <b>Class:</b> {c_class} </p>""".format(c_class=c_class_str)
+                        if cndonoradvisoryid == -1:
+                            SummaryText = """       This charity is predicted to be ranked higher than 
+                                                <i style="color:#E7573C;">{perc:.1f}%
+                                                </i> of the charities in its class.
+                                                """.format(colorstr2 = '#888888',perc=percentile)
+                        else:
+                            SummaryText = """ This charity has a {} on  
+                                            CharityNavigator.org. See their site for details.""".format(c_value)
+                        result_txt += """       <h3 style="
+                                                    margin-left:30px;
+                                                    margin-right:30px;
+                                                    text-align:center;
+                                                    border:1px solid #E7573C;
+                                                    "> {}
+                                                </h3>""".format(SummaryText)
                     
-                    result_txt += """       <p  style="
-                                                margin-top: 20px;
-                                                margin-bottom: 0px;
-                                                "> 
-                                                Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70
-                                            </p>""".format(c_predict=predicted_score)
-                    result_txt += """       <p style="
-                                                color:{colorstr2};
-                                                margin-bottom:0px;
-                                                "> 
-                                                <i>Actual CharityNavigator.org Rating: {c_value} </i>
-                                            </p>""".format(colorstr2 = '#888888',c_value=c_value)
-                    result_txt += """          
-                                            </li>"""
-                    result_txt += """       <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>""".format(c_val=c_class)
+                        result_txt += """       <p  style="
+                                                    margin-top: 20px;
+                                                    margin-bottom: 0px;
+                                                    "> 
+                                                    Predicted CharityNavigator.org Rating: {c_predict:.2f} / 70
+                                                </p>""".format(c_predict=predicted_score)
+                        result_txt += """       <p style="
+                                                    color:{colorstr2};
+                                                    margin-bottom:0px;
+                                                    "> 
+                                                    <i>Actual CharityNavigator.org Rating: {c_value} </i>
+                                                </p>""".format(colorstr2 = '#888888',c_value=c_value)
+                        result_txt += """          
+                                                </li>"""
+                        result_txt += """       <img src="http://qmorgan.dyndns.org/charityverity/{c_val}.png" width="580px" style="position:absolute;z-index:-1"></img>""".format(c_val=c_class)
                     
 
                     
-                    svg_label = """
-                    <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="280" stroke="black" stroke-width="30" stroke-opacity="0.8"></line>
-                    <polygon points="{xloc_minus},280 {xloc_plus},280 {xloc},308 " style="fill:black;stroke:white;stroke-width:0;fill-opacity:0.8"></polygon>
-                    """.format(xloc=xloc, xloc2=xloc, xloc_minus=xloc-15, xloc_plus=xloc+15)
+                        svg_label = """
+                        <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="280" stroke="black" stroke-width="30" stroke-opacity="0.8"></line>
+                        <polygon points="{xloc_minus},280 {xloc_plus},280 {xloc},308 " style="fill:black;stroke:white;stroke-width:0;fill-opacity:0.8"></polygon>
+                        """.format(xloc=xloc, xloc2=xloc, xloc_minus=xloc-15, xloc_plus=xloc+15)
                          
-                    # add to legend
-                    # svg_label += """
-                    # <line x1="83" x2="110" y1="90" y2="90" stroke="black" stroke-width="1"></line>
-                    # <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
-                    # """.format(title=mycharityname)
+                        # add to legend
+                        # svg_label += """
+                        # <line x1="83" x2="110" y1="90" y2="90" stroke="black" stroke-width="1"></line>
+                        # <text text-anchor="start" x="120" y="95" font-size="13">{title}</text>
+                        # """.format(title=mycharityname)
                     
-                    svg_label += """
-                    <text text-anchor="start" x="0" y="0" fill="white" transform="translate({xstart},280)rotate(-90)">{title}</text>
+                        svg_label += """
+                        <text text-anchor="start" x="0" y="0" fill="white" transform="translate({xstart},280)rotate(-90)">{title}</text>
                     
-                    """.format(xstart=xloc+4,title=myshortcharityname)
+                        """.format(xstart=xloc+4,title=myshortcharityname)
                     
-                    linemarker = ""
+                        linemarker = ""
                     
-                    linemarker_1 = """
-                    <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
-                    """.format(xloc=xloc,xloc2=xloc)
+                        linemarker_1 = """
+                        <line x1="{xloc:.2f}" y1="32" x2="{xloc2:.2f}" y2="310" stroke="teal" stroke-width="2" />
+                        """.format(xloc=xloc,xloc2=xloc)
                     
-                    # alternative. old
-                    svg_label_1 = """
-                    <text text-anchor="end" x="{maxxpos}" y="25">{title}</text>
-                    <line x1="{xstart}" x2="{maxxpos}" y1="32" y2="32" stroke="teal" stroke-width="2"></line>
-                    """.format(xstart=xloc-30, maxxpos=maxxpos,title=mycharityname)
+                        # alternative. old
+                        svg_label_1 = """
+                        <text text-anchor="end" x="{maxxpos}" y="25">{title}</text>
+                        <line x1="{xstart}" x2="{maxxpos}" y1="32" y2="32" stroke="teal" stroke-width="2"></line>
+                        """.format(xstart=xloc-30, maxxpos=maxxpos,title=mycharityname)
                     
                     
-                    # alternative. Old. 
-                    svg_label_2 = """
-                    <text text-anchor="end" x="195" y="184">This Charity</text>
-                    <line x1="200" x2="{xloc3:.2f}" y1="180" y2="180" stroke="teal" stroke-width="2"></line></svg>
-                    """.format(xloc3=xloc)
+                        # alternative. Old. 
+                        svg_label_2 = """
+                        <text text-anchor="end" x="195" y="184">This Charity</text>
+                        <line x1="200" x2="{xloc3:.2f}" y1="180" y2="180" stroke="teal" stroke-width="2"></line></svg>
+                        """.format(xloc3=xloc)
                     
-                    result_txt += """          <svg width="580" height="464">
-                                                {linemarker}
-                                                {svglabel}
-                                            </svg>""".format(linemarker=linemarker,svglabel=svg_label)
+                        result_txt += """          <svg width="580" height="464">
+                                                    {linemarker}
+                                                    {svglabel}
+                                                </svg>""".format(linemarker=linemarker,svglabel=svg_label)
                                         
-                    result_txt += """    </div><!-- end charity pictures -->
-                                        <div class="carousel-caption">Overview
-                                        </div>
-                                      </div>
-                                     """
-                                            #.format(c_class = str(result['CHARITYCLASS']),
-                                            #    colorstr = colorstr, c_predict=result['OOB_SCORE'],
-                                            #    c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
-                                     # <p> This is higher than <b>XX.X%</b> of all ranked charities of its class</p> 
+                        result_txt += """    </div><!-- end charity pictures -->
+                                            <div class="carousel-caption">Overview
+                                            </div>
+                                          </div>
+                                         """
+                                                #.format(c_class = str(result['CHARITYCLASS']),
+                                                #    colorstr = colorstr, c_predict=result['OOB_SCORE'],
+                                                #    c_value = str(result['OVERALL_VALUE']),colorstr2 = '#cccccc')#,
+                                         # <p> This is higher than <b>XX.X%</b> of all ranked charities of its class</p> 
                                      
-                    result_txt += """<div class="item">
-                                            <div id="charitypictures">
+                        result_txt += """<div class="item">
+                                                <div id="charitypictures">
                                             
-                                             <p style="text-align:center;padding:8px"> <b>Mission</b></p>
+                                                 <p style="text-align:center;padding:8px"> <b>Mission</b></p>
                                              
-                                            {description}
-                                            <p style="text-align:center;padding-top:8px">
-                                                <a href="{donationlink}" class="buttonname">Donate</a>
-                                            </p>
-                    """.format(description=get_description(ein),donationlink=donationlink)
+                                                {description}
+                                                <p style="text-align:center;padding-top:8px">
+                                                    <a href="{donationlink}" class="buttonname">Donate</a>
+                                                </p>
+                        """.format(description=get_description(ein),donationlink=donationlink)
 
-                    result_txt += """
+                        result_txt += """
 
-                                            </div><!-- end charity pictures --> 
-                                            <div class="carousel-caption">About
-                                            </div>
-                                      </div>
-                                      <div class="item">
-                                            <div id="charitypictures">
+                                                </div><!-- end charity pictures --> 
+                                                <div class="carousel-caption">About
+                                                </div>
+                                          </div>
+                                          <div class="item">
+                                                <div id="charitypictures">
                                             
 
                                             
-                                            <p style="text-align:center;padding:8px;"> <b>Highest ranked charities of class '{c_class_str}'</b></p>
+                                                <p style="text-align:center;padding:8px;"> <b>Highest ranked charities of class '{c_class_str}'</b></p>
                                             
-                                            <div class="CSSTableGenerator" style="width:600px;height:400px;">
-                                                            <table >
-                                """.format(c_class_str=c_class_str)
-                    result_txt += get_recommended_charities(c_class)
+                                                <div class="CSSTableGenerator" style="width:600px;height:400px;">
+                                                                <table >
+                                    """.format(c_class_str=c_class_str)
+                        result_txt += get_recommended_charities(c_class)
                     
-                    result_txt += """
-                    </table>
-                      </div>
+                        result_txt += """
+                        </table>
+                          </div>
                                             
-                                            </div><!-- end charity pictures -->                                     
-                                            <div class="carousel-caption">Comparison
-                                            </div>
-                                      </div>
-                                   </div>
-                                   <!-- Carousel nav -->
-                                   <a class="carousel-control left" href="#Carousel-{res_num}" 
-                                      data-slide="prev"><span class="glyphicon">&lsaquo;</span></a>
-                                   <a class="carousel-control right" href="#Carousel-{res_num}" 
-                                      data-slide="next"><span class="glyphicon">&rsaquo;</span></a>
-                                </div>
+                                                </div><!-- end charity pictures -->                                     
+                                                <div class="carousel-caption">Comparison
+                                                </div>
+                                          </div>
+                                       </div>
+                                       <!-- Carousel nav -->
+                                       <a class="carousel-control left" href="#Carousel-{res_num}" 
+                                          data-slide="prev"><span class="glyphicon">&lsaquo;</span></a>
+                                       <a class="carousel-control right" href="#Carousel-{res_num}" 
+                                          data-slide="next"><span class="glyphicon">&rsaquo;</span></a>
+                                    </div>
                                 
-                                """.format(res_num=count,charityname=mycharityname)
-                # looking for empty result lists. 
+                                    """.format(res_num=count,charityname=mycharityname)
+                    # looking for empty result lists. 
                     
-                if totalcount == 0:
-                    txt = """
-                        <p></p>
-                        <p>You searched for: <b>'{query}'</b></p>
-                        <p>There were no results for your search. </p>
-                        <p style="text-align:center"><a href="{search}">Search Again
-                                                    </a></p>""".format(query = query,
-                                                            search = url_for('search'))
-                # For non-empty result lists
-                else: 
-                    # print count
-                    # print countlimit
-                    # print totalcount
-                    # print "found {lenresults} items".format(lenresults=count)
-                    if totalcount > countlimit:
-                        count_limit_string = "returned more than {lenresults} results. Showing the first {cnt}".format(lenresults=count,cnt=count)
-                    else:
-                        count_limit_string = "returned {lenresults} results.".format(lenresults=totalcount)
+                    if totalcount == 0:
+                        txt = """
+                            <p></p>
+                            <p>You searched for: <b>'{query}'</b></p>
+                            <p>There were no results for your search. </p>
+                            <p style="text-align:center"><a href="{search}">Search Again
+                                                        </a></p>""".format(query = query,
+                                                                search = url_for('search'))
+                    # For non-empty result lists
+                    else: 
+                        # print count
+                        # print countlimit
+                        # print totalcount
+                        # print "found {lenresults} items".format(lenresults=count)
+                        if totalcount > countlimit:
+                            count_limit_string = "returned more than {lenresults} results. Showing the first {cnt}".format(lenresults=count,cnt=count)
+                        else:
+                            count_limit_string = "returned {lenresults} results.".format(lenresults=totalcount)
 
+                        txt = """
+                            <p></p>
+                            <p style="color:#ccc">Your search for: <b>'{query}'</b> {cstr}:</p>
+                            <p>{result}</ul></p>
+                            <p style="text-align:center"><a href="{search}">Search Again
+                                                        </a></p>""".format(query = query,  
+                                                                cstr=count_limit_string,
+                                                                result = result_txt,
+                                                                search = url_for('search'))
+                     # if the SQL search fails
+                except Exception, e:    
+                    print "Exception raised.. attempting to connect to server again ", str(attempted_reconnect_or_success)
+                    attempted_reconnect_or_success+= 1 # try to connect again
+                    conn = pymysql.connect(host='insight.ckocl9enbo47.us-west-2.rds.amazonaws.com',port=3306,user='qmorgan',passwd=passwd,db='cnavigator')
+                    cursor = conn.cursor()
+                    
                     txt = """
-                        <p></p>
-                        <p style="color:#ccc">Your search for: <b>'{query}'</b> {cstr}:</p>
-                        <p>{result}</ul></p>
-                        <p style="text-align:center"><a href="{search}">Search Again
-                                                    </a></p>""".format(query = query,  
-                                                            cstr=count_limit_string,
-                                                            result = result_txt,
-                                                            search = url_for('search'))
-                 # if the SQL search fails
-            except Exception, e:    
-                 txt = """
-                        <p></p>
-                        <p>Your search was: <b>'{query}'.</b></p> Unfortunately
-                        <p> The search failed! The error was:</p>
-                        <p>{error}</p>
-                        <p>To search again, click 
-                        <a href="{search}">here</a>.
-                        <p>If you'd like, feel free to email me the error report 
-                        at <a href="mailto:qmorgan@gmail.com">qmorgan@gmail.com.</a></p> 
-                        """.format(query = query, error=e,
-                                                              search = url_for('search'))
+                            <p></p>
+                            <p>Your search was: <b>'{query}'.</b></p> Unfortunately
+                            <p> The search failed! The error was:</p>
+                            <p>{error}</p>
+                            <p>To search again, click 
+                            <a href="{search}">here</a>.
+                            <p>If you'd like, feel free to email me the error report 
+                            at <a href="mailto:qmorgan@gmail.com">qmorgan@gmail.com.</a></p> 
+                            """.format(query = query, error=e,
+                                                                  search = url_for('search'))
 
         # If the user doesn't submit a query
         else:
