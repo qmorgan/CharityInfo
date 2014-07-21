@@ -1,14 +1,8 @@
 import os, datetime, re, glob,sys
 from flask import Flask, request, redirect, url_for, render_template, redirect, url_for, flash
 from werkzeug import secure_filename
-# from flask_sqlalchemy import SQLAlchemy
-from flask.ext.sqlalchemy import SQLAlchemy
-import sqlite3
 from os.path import exists
 import codecs
-from sqlalchemy import exc
-from sqlalchemy import event
-from sqlalchemy.pool import Pool
 import pymysql
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -31,47 +25,15 @@ try:
         passwd = os.environ.get("MYSQL_PASS")
         rdshost=os.environ.get("RDS_HOST")
 
-    # local
-    # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
-    # aws
-    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
-
-    # app.config['SQLALCHEMY_DATABASE_URI'] = db_path
-    # db = SQLAlchemy(app)
-
-    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
     conn = pymysql.connect(host='insight.ckocl9enbo47.us-west-2.rds.amazonaws.com',port=3306,user='qmorgan',passwd=passwd,db='cnavigator')
     cursor = conn.cursor()
     
     app.config.from_object(__name__)
 
-    # create engine for feeding SQL
-    # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
-    # eng = db.create_engine(db_path, pool_size=20, pool_recycle=3600)
-    # conn=eng.connect()
-
-    # db.create_all()
-    # db.create_all()
-
 except:
     raise Exception("Cannot connect to database!")
 
-# this doesn't seem to work.. 
-@event.listens_for(Pool, "checkout")
-def ping_connection(dbapi_connection, connection_record, connection_proxy):
-    cursor = dbapi_connection.cursor()
-    try:
-        cursor.execute("SELECT 1")
-    except:
-        # optional - dispose the whole pool
-        # instead of invalidating one at a time
-        # connection_proxy._pool.dispose()
-
-        # raise DisconnectionError - pool will try
-        # connecting again up to three times before raising.
-        raise exc.DisconnectionError()
-    cursor.close()
 
 @app.route("/")
 def index():
