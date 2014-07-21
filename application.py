@@ -9,6 +9,7 @@ import codecs
 from sqlalchemy import exc
 from sqlalchemy import event
 from sqlalchemy.pool import Pool
+import pymysql
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -33,27 +34,28 @@ try:
     # local
     # db_path = 'mysql://root:'+passwd+'@localhost/cnavigator'
     # aws
-    db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_path
-    db = SQLAlchemy(app)
+    # app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+    # db = SQLAlchemy(app)
 
+    # db_path = 'mysql://qmorgan:'+passwd+'@'+rdshost+'/cnavigator'
+
+    conn = pymysql.connect(host='insight.ckocl9enbo47.us-west-2.rds.amazonaws.com',port=3306,user='qmorgan',passwd=passwd,db='cnavigator')
+    cursor = conn.cursor()
+    
     app.config.from_object(__name__)
 
     # create engine for feeding SQL
     # http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html
-    eng = db.create_engine(db_path, pool_size=20, pool_recycle=3600)
-    conn=eng.connect()
+    # eng = db.create_engine(db_path, pool_size=20, pool_recycle=3600)
+    # conn=eng.connect()
 
     # db.create_all()
     # db.create_all()
 
 except:
     raise Exception("Cannot connect to database!")
-
-
-
-
 
 # this doesn't seem to work.. 
 @event.listens_for(Pool, "checkout")
@@ -98,9 +100,9 @@ def search():
                 countlimit=20
                 
                 results = search_parse(query,countlimit=countlimit)
-                print 'search done'
-                totalcount = int(results.rowcount)
-                print 'Found %i items' % (totalcount)
+                # print 'search done'
+                totalcount = int(len(results))
+                # print 'Found %i items' % (totalcount)
                 result_txt = "<ul style='padding-left: 0px;'>"
 
                 
@@ -110,7 +112,9 @@ def search():
                     if count >= countlimit: # only print the first 30
                         break
                     
-                    mycharityname = str(result['NAME']).title()
+                    #('AGA KHAN FOUNDATION USA', 65.0679, 521231983),
+                    
+                    mycharityname = str(result[0]).title()
                     myshortcharityname = mycharityname
                     if len(mycharityname) > 28:
                         myshortcharityname = ' '.join(mycharityname[0:28].split(' ')[0:-1])+' ...'
@@ -118,24 +122,24 @@ def search():
                     <header class="bridgetitle" id="charityname" style="padding-top:0px;padding-bottom:0px;">{c_name}</header>
                     '''.format(c_name = mycharityname)
                     
-                    predicted_score = result['CN_SCORE_PREDICT']
+                    predicted_score = result[1]
                     
                     cn_rating_exists = False
                     cn_id = -1
-                    ein=result['EIN']
+                    ein=result[2]
                     
                     # donor advisory: -1 if not known, CN_ID if found.
                     cndonoradvisoryid = check_for_donor_advisory(ein)
                     
                     cnres = check_for_CN_rating(ein)
                     for res in cnres:
-                        cn_id=res['CN_ID']
-                        cn_rating = res['OVERALL_VALUE']
+                        cn_id=res[0]
+                        cn_rating = res[1]
                         cn_rating_str = "{} / 70".format(cn_rating)
                         cn_rating_link = "http://www.charitynavigator.org/index.cfm?bay=search.summary&orgid={}".format(cn_id)
                         c_value = "<a href={}>{}</a>".format(cn_rating_link,cn_rating_str)
                         # change predicted score to out-of-bag estimate so it is not biased
-                        predicted_score = res['OOB_SCORE']
+                        predicted_score = res[2]
                     if cn_id == -1:
                         if cndonoradvisoryid == -1:
                             cn_rating_str = "Not Available"
@@ -150,7 +154,7 @@ def search():
                     categoryres = get_category(ein)
                     c_class = 'UNKNOWN'
                     for res in categoryres:
-                        c_class = res['NTEECAT12']
+                        c_class = res[0]
                     
                 
                     c_class_str = translate_nteecode(c_class)
@@ -325,10 +329,10 @@ def search():
                                                             search = url_for('search'))
                 # For non-empty result lists
                 else: 
-                    print count
-                    print countlimit
-                    print totalcount
-                    print "found {lenresults} items".format(lenresults=count)
+                    # print count
+                    # print countlimit
+                    # print totalcount
+                    # print "found {lenresults} items".format(lenresults=count)
                     if totalcount > countlimit:
                         count_limit_string = "returned more than {lenresults} results. Showing the first {cnt}".format(lenresults=count,cnt=count)
                     else:
@@ -364,7 +368,7 @@ def search():
                 
                 <p>No search term was specified. </p>
                 <p>Please submit a well-formed query <a href='{}'>here</a></p>""".format(url_for("search"))
-        print "attempting to render template"
+        # print "attempting to render template"
         return render_template("search.html", txt=unicode(txt.strip(codecs.BOM_UTF8), 'utf-8'))
     else:
         txt = """
@@ -408,8 +412,11 @@ def check_for_CN_rating(queryein):
     WHERE ob.CN_ID = cn.CN_ID
     """.format(str(queryein))
 
-    results = conn.execute(query_template)
-    return results
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
+    return ret
 
 
 def check_for_donor_advisory(queryein):
@@ -418,12 +425,15 @@ def check_for_donor_advisory(queryein):
     FROM CNDonorAdvisory as c
     WHERE c.EIN = {}
     """.format(str(queryein))
-    results = conn.execute(query_template)
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
     advisoryid = -1
-    for result in results:
-        if result['DONORADVISORY'] == 1:
+    for result in ret:
+        if result[1] == 1:
             # we have a donor advisory! 
-            advisoryid = result['CN_ID']
+            advisoryid = result[0]
     return advisoryid
     
 
@@ -432,10 +442,13 @@ def get_description(queryein):
     SELECT description FROM missions
     WHERE EIN = {ein}
     """.format(ein=queryein)
-    results = conn.execute(query_template)
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
     description=''
-    for result in results:
-        description = result['description']
+    for result in ret:
+        description = result[0]
     
     description=description.decode("utf-8")
 
@@ -457,11 +470,14 @@ def get_category(queryein):
     FROM nteecat12 as e
     WHERE e.EIN = {}
     """.format(str(queryein))
-    results = conn.execute(query_template)
-    return results
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
+    return ret
     
 def search_parse(query,countlimit):
-    print "searching {}".format(query)
+    # print "searching {}".format(query)
     if "'" in query:
         raise Exception("The characters ', are not allowed ")
         
@@ -474,11 +490,12 @@ def search_parse(query,countlimit):
         ORDER BY s.CN_SCORE_PREDICT DESC
         LIMIT {}
     """.format(query,countlimit+1)
-    print query_template
-    results = conn.execute(query_template)
-    print 'search complete'
-    print results
-    return results
+    # print query_template
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
+    return ret
     #for result in results:
     #    print result
     
@@ -491,18 +508,24 @@ def get_percentile(code,val):
     FROM class_score_link_4
     WHERE NTEECAT12 = '{cod}' AND CN_SCORE_PREDICT > {va}
     """.format(cod=code,va=val)
-    results = conn.execute(query_template)
-    for result in results:
-        numfound = result['COUNT(CN_SCORE_PREDICT)']
+    results = cursor.execute(query_template)
+    ret = cursor.fetchall()
+    # print ret
+    for result in ret:
+        numfound = result[0]
+        # print numfound
     
     query_template = """
     SELECT COUNT(CN_SCORE_PREDICT)
     FROM class_score_link_4
     WHERE NTEECAT12 = '{cod}'
     """.format(cod=code)
-    results = conn.execute(query_template)
-    for result in results:
-        numtotal = result['COUNT(CN_SCORE_PREDICT)']
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
+    for result in ret:
+        numtotal = result[0]
     
     pct = 100.-100.*float(numfound)/float(numtotal)
     return pct
@@ -520,17 +543,20 @@ def get_recommended_charities(code):
     WHERE ff.EIN = c.EIN
     ORDER BY c.CN_SCORE_PREDICT DESC
     """.format(cod=code)
-    results = conn.execute(query_template)
+    results = cursor.execute(query_template)
+    # print 'search complete'
+    ret = cursor.fetchall()
+    # print ret
     restext = """<tr>
                     <td>Name</td> <td><b>Ranking</b></td>
                   </tr>
                   """
     count = 0
-    for result in results:
+    for result in ret:
         restext += """<tr>
                         <td>{name}</td> <td><b>{rating:.2f} / 70</b></td>
                       </tr>
-        """.format(name=result['NAME'].title(),rating=result['CN_SCORE_PREDICT'])
+        """.format(name=result[0].title(),rating=result[1])
         count += 1
         if count > 8:
             break
